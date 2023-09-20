@@ -28,6 +28,10 @@ encryption_handler = Fernet(encryption_key)
 from user.email_sender import send_email
 
 
+# domain to redirect to from email during email verification, password reset
+EMAIL_REDIRECT_DOMAIN = "http://127.0.0.1:8000"
+
+
 def verify_token(token):
     try:
         access_token = AccessToken(token)
@@ -67,7 +71,7 @@ class Register(APIView):
                 'Animation West-Africa Email Verification',
                 f'''
                 Click this link to activate your awa-network account:
-                http://127.0.0.1:8000/auth/verify/?x_access_token={encrypted_access_token.decode()}/
+                {EMAIL_REDIRECT_DOMAIN}/auth/verify/?x_access_token={encrypted_access_token.decode()}/
                 ''',
                 'no-reply@animationwestafrica.com',
                 new_user.email
@@ -131,7 +135,7 @@ class ForgotPassword(APIView):
                 'AWA-Network Password Reset',
                 f'''
                 Click this link to reset your AWA-Network password:
-                http://127.0.0.1:8000/auth/reset_password/?x_access_token={encrypted_access_token.decode()}/
+                {EMAIL_REDIRECT_DOMAIN}/auth/reset_password/?x_access_token={encrypted_access_token.decode()}/
                 ''',
                 'no-reply@animationwestafrica.com',
                 user_email
