@@ -60,7 +60,6 @@ class Register(APIView):
             data['response'] = 'Registration Successful'
             data['username'] = new_user.username
             data['email'] = new_user.email
-            data['tokens'] = tokens
 
             # encrypt access token for sending in verification URL
             encrypted_access_token = \
