@@ -117,6 +117,20 @@ class Login(APIView):
         return response
 
 
+class Logout(APIView):
+    def post(self, request):
+        data = {
+                'status': 'logged out'
+            }
+
+        response = Response(status=status.HTTP_200_OK)
+        response.data = data
+        response.delete_cookie('access_token')
+        response.delete_cookie('refresh_token')
+
+        return response
+
+
 class UserInfo(APIView):
     '''this view was created to test that a user is properly authenticated
     using either the tuple of DEFAULT_AUTHENTICATION_CLASSES specified in
