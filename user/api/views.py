@@ -83,6 +83,60 @@ class Register(APIView):
         return Response (serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+
+class Login(APIView):
+    # exempt this view from using authentication/permissions
+    permission_classes = []
+    authentication_classes = []
+
+    def post(self, request):
+
+        email = self.request.POST.get('email')
+        password = self.request.POST.get('password')
+        user = User.objects.get(email=email)
+        
+        if not (user and user.check_password(password)):
+            return Response({'status: invalid user'}, status=status.HTTP_400_BAD_REQUEST)
+
+        tokens = get_jwt_access_tokens_for_user(user)
+
+        data = {
+            'status': 'logged in',
+            'username': user.username
+        }
+
+        # create Response, set status/data, add cookies then return response
+        response = Response(status=status.HTTP_200_OK)
+        response.data = data
+        response.set_cookie(
+            key='access_token', value=tokens['access_token'], httponly=True)
+        response.set_cookie(
+            key='refresh_token', value=tokens['refresh_token'], httponly=True)
+
+        return response
+
+
+class UserInfo(APIView):
+    '''this view was created to test that a user is properly authenticated
+    using either the tuple of DEFAULT_AUTHENTICATION_CLASSES specified in
+    settings OR via a list of authentication classes specified here (which
+    would override the DEFAULT_AUTHENTICATION_CLASSES). If there isn't
+    an authenticated user, the returned JSON would have no valid user info.'''
+
+    def get(self, request):
+
+        user = request.user
+        data = {
+            'username': user.username,
+            'user ID': user.id,
+            'status': 'authenticated'
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+
+
 class VerifyEmail(APIView):
     '''when a user clicks the verification link in the email, this is the
     view that handles the verification and subsequent redirection.'''
