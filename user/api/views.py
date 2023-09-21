@@ -43,7 +43,7 @@ def verify_token(token):
 # Create your views here.
 class Register(APIView):
 
-    # exempt this view from using authentication/permissions
+    # exempt this view from requiring authentication/permissions
     permission_classes = []
     authentication_classes = []
 
@@ -86,7 +86,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 class Login(APIView):
-    # exempt this view from using authentication/permissions
+    # exempt this view from requiring authentication/permissions
     permission_classes = []
     authentication_classes = []
 
@@ -154,7 +154,7 @@ class VerifyEmail(APIView):
     '''when a user clicks the verification link in the email, this is the
     view that handles the verification and subsequent redirection.'''
 
-    # exempt this view from using authentication/permissions
+    # exempt this view from requiring authentication/permissions
     permission_classes = []
     authentication_classes = []
 
@@ -180,7 +180,7 @@ class ForgotPassword(APIView):
     '''this view collects the user email and sends an email to it containing
     the url for password reset'''
 
-    # exempt this view from using authentication/permissions
+    # exempt this view from requiring authentication/permissions
     permission_classes = []
     authentication_classes = []
 
@@ -219,7 +219,7 @@ class ResetPassword(APIView):
     '''when a user clicks the password reset link in the email, this is the
     view that handles the password reset and subsequent redirection.'''
 
-    # exempt this view from using authentication/permissions
+    # exempt this view from requiring authentication/permissions
     permission_classes = []
     authentication_classes = []
 
