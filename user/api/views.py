@@ -101,6 +101,8 @@ class Login(APIView):
             Q(email=email)|Q(username=username)).first()
         
         if not (user and user.check_password(password)):
+            print("login is invalid")
+            print(f"Email: {email}, Username: {username}, Password: {password}")
             return Response(
                 {'status: invalid user'}, status=status.HTTP_400_BAD_REQUEST)
 

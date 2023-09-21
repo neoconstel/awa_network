@@ -11,6 +11,7 @@ djangorestframework = "*"
 djangorestframework-simplejwt = "*"
 cryptography = "*"
 requests = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 
