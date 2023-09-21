@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 
 # models
 from user.models import User, InvalidAccessToken
+from django.db.models import Q
 
 # serializers
 from .serializers import UserSerializer
@@ -93,11 +94,15 @@ class Login(APIView):
     def post(self, request):
 
         email = self.request.POST.get('email')
+        username = self.request.POST.get('username')
         password = self.request.POST.get('password')
-        user = User.objects.get(email=email)
+
+        user = User.objects.filter(
+            Q(email=email)|Q(username=username)).first()
         
         if not (user and user.check_password(password)):
-            return Response({'status: invalid user'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'status: invalid user'}, status=status.HTTP_400_BAD_REQUEST)
 
         tokens = get_jwt_access_tokens_for_user(user)
 
