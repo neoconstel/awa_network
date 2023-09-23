@@ -26,6 +26,7 @@ encryption_key = settings.CRYPTOGRAPHY_KEY.encode()
 encryption_handler = Fernet(encryption_key)
 
 # others
+import json
 from user.email_sender import send_email
 
 
@@ -49,7 +50,7 @@ class Register(APIView):
     authentication_classes = []
 
     def post(self, request):
-        serializer = UserSerializer(data=request.POST)
+        serializer = UserSerializer(data=json.loads(request.body))
         data = {}
 
         if serializer.is_valid():
@@ -92,19 +93,31 @@ class Login(APIView):
     authentication_classes = []
 
     def post(self, request):
-
-        email = self.request.POST.get('email')
-        username = self.request.POST.get('username')
-        password = self.request.POST.get('password')
+        body = json.loads(request.body)
+        email = body.get('email')
+        username = body.get('username')
+        password = body.get('password')
 
         user = User.objects.filter(
             Q(email=email)|Q(username=username)).first()
         
-        if not (user and user.check_password(password)):
-            print("login is invalid")
-            print(f"Email: {email}, Username: {username}, Password: {password}")
+        # invalid or inactive user
+        if not (user and user.check_password(password) and user.is_active):
+            if user and user.check_password(password):
+                return Response(
+                {
+                    'status': 'inactive user'
+                },
+                status=status.HTTP_400_BAD_REQUEST)
+
             return Response(
-                {'status: invalid user'}, status=status.HTTP_400_BAD_REQUEST)
+            {
+                'status': 'invalid user'
+            },
+            status=status.HTTP_400_BAD_REQUEST)
+
+
+        # found valid, active user so proceed with login process
 
         tokens = get_jwt_access_tokens_for_user(user)
 
@@ -135,6 +148,7 @@ class Logout(APIView):
         response.delete_cookie('access_token')
         response.delete_cookie('refresh_token')
 
+        print("logged out")
         return response
 
 
