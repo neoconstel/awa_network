@@ -130,9 +130,10 @@ class Login(APIView):
         response = Response(status=status.HTTP_200_OK)
         response.data = data
         response.set_cookie(
-            key='access_token', value=tokens['access_token'], httponly=True)
+            key='access_token', value=tokens['access_token'], httponly=True, max_age=None)
         response.set_cookie(
-            key='refresh_token', value=tokens['refresh_token'], httponly=True)
+            key='refresh_token', value=tokens['refresh_token'], httponly=True, max_age=None)
+            
 
         return response
 
