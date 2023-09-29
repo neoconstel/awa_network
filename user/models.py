@@ -43,7 +43,7 @@ class AccountManager(BaseUserManager):
 # create the custom user model
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField('email address', unique=True)
-    username = models.CharField(max_length=150, unique=True)
+    username = models.CharField(max_length=150, unique=True, blank=True, null=True)
     first_name = models.CharField(max_length=150, blank=True, null=True)
     last_name = models.CharField(max_length=150, blank=True, null=True)
     gender = models.CharField(max_length=20, blank=True, null=True)
