@@ -30,8 +30,11 @@ import json
 from user.email_sender import send_email
 
 
-# domain to redirect to from email during email verification / password reset
-EMAIL_REDIRECT_DOMAIN = "http://127.0.0.1:8000"
+# frontend URL to redirect to from email during email verification
+VERIFY_REDIRECT_URL = "http://localhost:5173/AWA-Network/verify_email"
+
+# frontend URL to redirect to from email during password reset
+RESET_REDIRECT_URL = "http://127.0.0.1:8000"
 
 
 def verify_token(token):
@@ -72,12 +75,11 @@ class Register(APIView):
                 'Animation West-Africa Email Verification',
                 f'''
                 Click this link to activate your awa-network account:
-                {EMAIL_REDIRECT_DOMAIN}/auth/verify/?x_access_token={encrypted_access_token.decode()}/
+                {VERIFY_REDIRECT_URL}/?xtoken={encrypted_access_token.decode()}/
                 ''',
                 'no-reply@animationwestafrica.com',
                 new_user.email
             )
-
 
             return Response(data, status=status.HTTP_201_CREATED)
 
@@ -173,19 +175,29 @@ class UserInfo(APIView):
 
 
 class VerifyEmail(APIView):
-    '''when a user clicks the verification link in the email, this is the
-    view that handles the verification and subsequent redirection.'''
+    '''when a user clicks the verification link in the email and gets directed
+    to the frontend, the frontend calls this view to handle the verification.'''
 
     # exempt this view from requiring authentication/permissions
     permission_classes = []
     authentication_classes = []
 
-    def get(self, request):
+    def post(self, request):
+
+        body = json.loads(request.body)
+
         # the encrypted access token is received here and decoded
         encrypted_access_token = \
-            self.request.GET.get('x_access_token').replace('/','').encode()
-        access_token = \
-            encryption_handler.decrypt(encrypted_access_token).decode()
+            body.get('x_access_token').replace('/','').encode()
+        
+        try:
+            access_token = \
+                encryption_handler.decrypt(encrypted_access_token).decode()
+        except:
+            return Response({
+                'xtoken': encrypted_access_token,
+                'error': "invalid verification token"},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
 
         token_user_data = verify_token(access_token)
         if token_user_data:
@@ -195,7 +207,10 @@ class VerifyEmail(APIView):
             
             return Response({user.username: "Verified"}, 
                             status=status.HTTP_202_ACCEPTED)
-        return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+        return Response({
+            'xtoken': encrypted_access_token,
+            'error': "invalid verification token"},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
 
     
 class ForgotPassword(APIView):
@@ -224,7 +239,7 @@ class ForgotPassword(APIView):
                 'AWA-Network Password Reset',
                 f'''
                 Click this link to reset your AWA-Network password:
-                {EMAIL_REDIRECT_DOMAIN}/auth/reset_password/?x_access_token={encrypted_access_token.decode()}/
+                {RESET_REDIRECT_URL}/auth/reset_password/?x_access_token={encrypted_access_token.decode()}/
                 ''',
                 'no-reply@animationwestafrica.com',
                 user_email
