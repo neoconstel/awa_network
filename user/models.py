@@ -68,14 +68,16 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.username
 
     def save(self, *args, **kwargs) -> None:
-        # give UNIQUE default username until user sets desired username
-        if self.username == "default":
+        # give UNIQUE default username until user sets desired username.
+        # "if (not self.username)" handles the empty string returned by the
+        # serializer if the frontend returns an empty string for username
+        if (not self.username) or self.username == "default":
             self.username = \
                 f"user_{int(time.time()) + self.__class__.objects.count()}"
 
         # use set_password to ensure password is encrypted before storage
         self.set_password(self.password)
-        
+
         new_user = super().save(*args, **kwargs)      
         return new_user
 
