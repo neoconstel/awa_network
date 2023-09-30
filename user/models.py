@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 import time
+import random
 
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -72,8 +73,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     def save(self, *args, **kwargs) -> None:
         # give UNIQUE default username until user sets desired username.
         if not self.username:
-            self.username = \
+            self.username = (
                 f"user_{int(time.time()) + self.__class__.objects.count()}"
+                f"{random.randint(1000,9999)}")            
 
         # use set_password to ensure password is encrypted before storage
         self.set_password(self.password)
