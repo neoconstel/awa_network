@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+import time
 
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -40,10 +41,14 @@ class AccountManager(BaseUserManager):
                                             password, **other_fields)
 
 
+
+
+
 # create the custom user model
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField('email address', unique=True)
-    username = models.CharField(max_length=150, unique=True, blank=True, null=True)
+    username = models.CharField(
+        max_length=150, unique=True, blank=True, null=False, default="default")
     first_name = models.CharField(max_length=150, blank=True, null=True)
     last_name = models.CharField(max_length=150, blank=True, null=True)
     gender = models.CharField(max_length=20, blank=True, null=True)
@@ -62,8 +67,23 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self) -> str:
         return self.username
 
+    def save(self, *args, **kwargs) -> None:
+        # give UNIQUE default username until user sets desired username
+        if self.username == "default":
+            self.username = \
+                f"user_{int(time.time()) + self.__class__.objects.count()}"
+
+        # use set_password to ensure password is encrypted before storage
+        self.set_password(self.password)
+        
+        new_user = super().save(*args, **kwargs)      
+        return new_user
+
 
 class InvalidAccessToken(models.Model):
     token = models.CharField(max_length=1000)
     datetime = models.DateTimeField(default=timezone.now)
+    
+
+
     
