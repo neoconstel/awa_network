@@ -34,7 +34,7 @@ from user.email_sender import send_email
 VERIFY_REDIRECT_URL = "http://localhost:5173/AWA-Network/verify_email"
 
 # frontend URL to redirect to from email during password reset
-RESET_REDIRECT_URL = "http://127.0.0.1:8000"
+RESET_REDIRECT_URL = "http://localhost:5173/AWA-Network/reset_password"
 
 
 def verify_token(token):
@@ -214,8 +214,9 @@ class VerifyEmail(APIView):
 
     
 class ForgotPassword(APIView):
-    '''this view collects the user email and sends an email to it containing
-    the url for password reset'''
+    '''this view collects the user email from the frontend and sends an email 
+    containing the url for password reset. The url leads to the frontend's
+    password reset page'''
 
     # exempt this view from requiring authentication/permissions
     permission_classes = []
@@ -223,7 +224,8 @@ class ForgotPassword(APIView):
 
     def post(self, request):
 
-        user_email = self.request.POST.get('email')
+        body = json.loads(request.body)
+        user_email = body.get('email')
         user = User.objects.filter(email=user_email).first()
         if user:
         
@@ -239,12 +241,13 @@ class ForgotPassword(APIView):
                 'AWA-Network Password Reset',
                 f'''
                 Click this link to reset your AWA-Network password:
-                {RESET_REDIRECT_URL}/auth/reset_password/?x_access_token={encrypted_access_token.decode()}/
+                {RESET_REDIRECT_URL}/?xtoken={encrypted_access_token.decode()}/
                 ''',
                 'no-reply@animationwestafrica.com',
                 user_email
             )
-            return Response(status=status.HTTP_200_OK)
+            return Response(
+                {'status': 'reset email sent'},status=status.HTTP_200_OK)
             
         return Response(
             {"error": "no user with this email exists"},
