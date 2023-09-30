@@ -30,7 +30,7 @@ import json
 from user.email_sender import send_email
 
 
-# domain to redirect to from email during email verification, password reset
+# domain to redirect to from email during email verification / password reset
 EMAIL_REDIRECT_DOMAIN = "http://127.0.0.1:8000"
 
 

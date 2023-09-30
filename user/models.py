@@ -48,7 +48,7 @@ class AccountManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField('email address', unique=True)
     username = models.CharField(
-        max_length=150, unique=True, blank=True, null=False, default="default")
+        max_length=150, unique=True, blank=True, null=False, default="")
     first_name = models.CharField(max_length=150, blank=True, null=True)
     last_name = models.CharField(max_length=150, blank=True, null=True)
     gender = models.CharField(max_length=20, blank=True, null=True)
@@ -56,8 +56,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
 
-    image_file = models.ImageField(upload_to="profile_pics", null=False, default='default.ico')
-    bio = models.CharField(max_length=500, null=False, default="nothing to see here")
+    image_file = models.ImageField(
+        upload_to="profile_pics", null=False, default='default.ico')
+    bio = models.CharField(
+        max_length=500, null=False, default="nothing to see here")
     membership = models.CharField(max_length=20, null=False, default="Basic")
 
     USERNAME_FIELD = 'email'    
@@ -69,9 +71,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def save(self, *args, **kwargs) -> None:
         # give UNIQUE default username until user sets desired username.
-        # "if (not self.username)" handles the empty string returned by the
-        # serializer if the frontend returns an empty string for username
-        if (not self.username) or self.username == "default":
+        if not self.username:
             self.username = \
                 f"user_{int(time.time()) + self.__class__.objects.count()}"
 

@@ -31,10 +31,13 @@ def send_email(subject, message, sender, *recipients):
 		"X-RapidAPI-Host": "rapidprod-sendgrid-v1.p.rapidapi.com"
 	}
 
-	response = requests.request("POST", url, json=payload, headers=headers)
-
-	print(response.text)
-	print(f"SENT EMAIL to {recipients}")
+	try:
+		response = requests.request("POST", url, json=payload, headers=headers)
+	except:
+		print("Failed to send email, due to connection error or API denial.")
+	else:
+		print(response.text)
+		print(f"SENT EMAIL to {recipients}")
 
 
 if __name__ == '__main__':
