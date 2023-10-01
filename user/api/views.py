@@ -256,8 +256,10 @@ class ForgotPassword(APIView):
 
 
 class ResetPassword(APIView):
-    '''when a user clicks the password reset link in the email, this is the
-    view that handles the password reset and subsequent redirection.'''
+    '''when a user clicks the password reset link in the email, they get
+    directed to the frontend password reset page containing a password reset
+    form which is authorized by the encrypted token in the url. On submission
+    of that form, this is the view which handles the password reset.'''
 
     # exempt this view from requiring authentication/permissions
     permission_classes = []
@@ -267,9 +269,11 @@ class ResetPassword(APIView):
         pass
     
     def get_user(self):
+        body = json.loads(self.request.body)
+
         # the encrypted access token is received here and decoded
         encrypted_access_token = \
-            self.request.GET.get('x_access_token').replace('/','')
+            body.get('x_access_token').replace('/','')
 
         # check/invalidate the encrypted access token to avoid reuse
         invalidated, newly_created = InvalidAccessToken.objects.get_or_create(
@@ -289,8 +293,10 @@ class ResetPassword(APIView):
 
 
     def post(self, request):
-        password = self.request.POST.get('password')
-        password2 = self.request.POST.get('password2')
+        body = json.loads(self.request.body)
+
+        password = body.get('password')
+        password2 = body.get('password2')
         try:
             user = self.get_user()
         except self.InvalidAccessToken:
@@ -302,7 +308,9 @@ class ResetPassword(APIView):
             user.set_password(password)
             user.save()
             
-            return Response(status=status.HTTP_200_OK)
+            return Response({
+                'status': 'reset password ok', 
+                'user': user.username},status=status.HTTP_200_OK)
         
         if not user:
             error = "no user found"
