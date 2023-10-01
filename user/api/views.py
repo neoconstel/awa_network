@@ -237,6 +237,8 @@ class ForgotPassword(APIView):
             encrypted_access_token = \
                 encryption_handler.encrypt(access_token.encode())
 
+            print(f"\n\n{encrypted_access_token.decode()}\n\n")
+
             # send password reset email with user password reset URL
             send_email(
                 'AWA-Network Password Reset',
@@ -276,10 +278,10 @@ class ResetPassword(APIView):
         encrypted_access_token = \
             body.get('x_access_token').replace('/','')
 
-        # check/invalidate the encrypted access token to avoid reuse
-        invalidated, newly_created = InvalidAccessToken.objects.get_or_create(
-                    token=encrypted_access_token)
-        if not newly_created:
+        # check if encrypted access token is invalidated, to avoid reuse
+        invalidated_token = InvalidAccessToken.objects.filter(
+                    token=encrypted_access_token).first()
+        if invalidated_token:
             raise self.InvalidAccessToken
 
         encrypted_access_token = encrypted_access_token.encode()
@@ -289,7 +291,7 @@ class ResetPassword(APIView):
         token_user_data = verify_token(access_token)
         if token_user_data:
             user = User.objects.get(id=token_user_data['user_id'])
-            return user
+            return user, encrypted_access_token.decode()
         return None
 
 
@@ -298,8 +300,9 @@ class ResetPassword(APIView):
 
         password = body.get('password')
         password2 = body.get('password2')
+        
         try:
-            user = self.get_user()
+            user, encrypted_access_token = self.get_user()
         except self.InvalidAccessToken:
             return Response(
                 {"error": "password reset token already used"}, 
@@ -309,22 +312,34 @@ class ResetPassword(APIView):
                 {"error": "invalid token"}, 
                 status=status.HTTP_400_BAD_REQUEST)
 
-        if user and password == password2:
+        if user:
+
+            try:
+                assert password == password2
+                assert len(password.strip()) >= 1
+            except:
+                return Response({
+                    "error": "passwords must not be blank and must match"},
+                status=status.HTTP_400_BAD_REQUEST
+                )
+
             user.set_password(password)
             user.save()
+
+            # invalidate access token on successful reset to avoid reuse
+            inv = InvalidAccessToken.objects.create(
+                token=encrypted_access_token)
+            inv.save()
             
             return Response({
                 'status': 'reset password ok', 
                 'user': user.username},status=status.HTTP_200_OK)
         
-        if not user:
-            error = "no user found"
-        elif password != password2:
-            error = "passwords don't match!"
-        return Response(
-            {"error": error},
-            status=status.HTTP_400_BAD_REQUEST
-            )
+        # no user
+        else:
+            return Response({"error": "no user found"},
+                status=status.HTTP_400_BAD_REQUEST
+                )
 
 
 
