@@ -21,6 +21,7 @@ from rest_framework_simplejwt.tokens import AccessToken # verify access token
 from rest_framework_simplejwt.exceptions import InvalidToken # exception
 
 # for cryptographic encryption and decryption
+import cryptography
 from cryptography.fernet import Fernet
 encryption_key = settings.CRYPTOGRAPHY_KEY.encode()
 encryption_handler = Fernet(encryption_key)
@@ -302,6 +303,10 @@ class ResetPassword(APIView):
         except self.InvalidAccessToken:
             return Response(
                 {"error": "password reset token already used"}, 
+                status=status.HTTP_400_BAD_REQUEST)
+        except cryptography.fernet.InvalidToken:
+            return Response(
+                {"error": "invalid token"}, 
                 status=status.HTTP_400_BAD_REQUEST)
 
         if user and password == password2:
