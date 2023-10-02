@@ -206,7 +206,7 @@ class VerifyEmail(APIView):
             user.is_active = True
             user.save()
             
-            return Response({user.username: "Verified"}, 
+            return Response({"verified_user": user.username}, 
                             status=status.HTTP_202_ACCEPTED)
         return Response({
             'xtoken': encrypted_access_token,
