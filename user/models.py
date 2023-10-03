@@ -77,13 +77,8 @@ class User(AbstractBaseUser, PermissionsMixin):
                 f"user_{int(time.time()) + self.__class__.objects.count()}"
                 f"{random.randint(1000,9999)}")            
 
-        # use set_password to ensure password is encrypted before first save
-        if not self.id:
-            self.set_password(self.password)
-
         new_user = super().save(*args, **kwargs)      
         return new_user
-
 
 class InvalidAccessToken(models.Model):
     token = models.CharField(max_length=1000)
