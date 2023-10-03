@@ -30,6 +30,7 @@ class AccountManager(BaseUserManager):
         other_fields.setdefault('is_staff', True)
         other_fields.setdefault('is_superuser', True)
         other_fields.setdefault('is_active', True)
+        other_fields.setdefault('is_verified', True)
 
         if other_fields.get('is_staff') is not True:
             raise ValueError('Superuser must be assigned to is_staff=True')
@@ -56,6 +57,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_registered = models.DateTimeField(default=timezone.now)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
 
     image_file = models.ImageField(
         upload_to="profile_pics", null=False, default='default.ico')

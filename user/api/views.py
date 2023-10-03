@@ -204,6 +204,7 @@ class VerifyEmail(APIView):
         if token_user_data:
             user = User.objects.get(id=token_user_data['user_id'])
             user.is_active = True
+            user.is_verified = True
             user.save()
             
             return Response({"verified_user": user.username}, 
