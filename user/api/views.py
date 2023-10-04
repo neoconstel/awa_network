@@ -109,13 +109,13 @@ class Login(APIView):
             if user and user.check_password(password):
                 return Response(
                 {
-                    'status': 'inactive user'
+                    'error': 'inactive user'
                 },
                 status=status.HTTP_400_BAD_REQUEST)
 
             return Response(
             {
-                'status': 'invalid user'
+                'error': 'invalid user'
             },
             status=status.HTTP_400_BAD_REQUEST)
 
