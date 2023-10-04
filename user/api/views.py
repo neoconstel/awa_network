@@ -166,10 +166,11 @@ class UserInfo(APIView):
     def get(self, request):
 
         user = request.user
+        status = 'authenticated' if request.user else 'anonymous'
         data = {
             'username': user.username,
-            'user ID': user.id,
-            'status': 'authenticated'
+            'userID': user.id,
+            'status': status
         }
 
         return Response(data, status=status.HTTP_200_OK)
