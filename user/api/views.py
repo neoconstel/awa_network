@@ -29,6 +29,7 @@ encryption_handler = Fernet(encryption_key)
 # others
 import json
 from user.email_sender import send_email
+from datetime import datetime, timedelta
 
 
 # frontend URL to redirect to from email during email verification
@@ -82,7 +83,7 @@ class Register(APIView):
                 new_user.email
             )
 
-            return Response(data, status=status.HTTP_201_CREATED)
+            return Response(data, status=status.HTTP_200_OK)
 
         return Response (serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -129,14 +130,18 @@ class Login(APIView):
             'username': user.username
         }
 
+        # Create a datetime object for one year in the future
+        expires = datetime.utcnow() + timedelta(days=365)
+
         # create Response, set status/data, add cookies then return response
         response = Response(status=status.HTTP_200_OK)
         response.data = data
         response.set_cookie(
-            key='access_token', value=tokens['access_token'], httponly=True, max_age=None)
+            key='access_token', value=tokens['access_token'], 
+            httponly=True, expires=expires)
         response.set_cookie(
-            key='refresh_token', value=tokens['refresh_token'], httponly=True, max_age=None)
-            
+            key='refresh_token', value=tokens['refresh_token'], 
+            httponly=True, expires=expires)            
 
         return response
 
@@ -166,11 +171,11 @@ class UserInfo(APIView):
     def get(self, request):
 
         user = request.user
-        status = 'authenticated' if request.user else 'anonymous'
+        login_status = 'authenticated' if request.user else 'anonymous'
         data = {
             'username': user.username,
             'userID': user.id,
-            'status': status
+            'status': login_status
         }
 
         return Response(data, status=status.HTTP_200_OK)
@@ -209,7 +214,7 @@ class VerifyEmail(APIView):
             user.save()
             
             return Response({"verified_user": user.username}, 
-                            status=status.HTTP_202_ACCEPTED)
+                            status=status.HTTP_200_OK)
         return Response({
             'xtoken': encrypted_access_token,
             'error': "invalid verification token"},
