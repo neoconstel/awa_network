@@ -30,6 +30,7 @@ encryption_handler = Fernet(encryption_key)
 import json
 from user.email_sender import send_email
 from datetime import datetime, timedelta
+from django.contrib.auth import login
 
 
 # frontend URL to redirect to from email during email verification
@@ -101,6 +102,7 @@ class Login(APIView):
         email = body.get('email')
         username = body.get('username')
         password = body.get('password')
+        remember_me = body.get('rememberMe')
 
         user = User.objects.filter(
             Q(email=email)|Q(username=username)).first()
@@ -121,8 +123,15 @@ class Login(APIView):
             status=status.HTTP_400_BAD_REQUEST)
 
 
-        # found valid, active user so proceed with login process
+        # FOUND VALID, ACTIVE USER SO PROCEED WITH LOGIN PROCESS
 
+        # -----session auth (useful for 'don't remember me' login)------
+        '''saves a session cookie containing sessionid. Expires after 2 weeks
+        by default, unless SESSION_EXPIRE_AT_BROWSER_CLOSE = True is set in
+        settings.py in which case it gets deleted once browser is closed.'''
+        login(request, user)
+
+        # -----JWT auth (via persistently saved authentication cookies)-----
         tokens = get_jwt_access_tokens_for_user(user)
 
         data = {
@@ -133,15 +142,16 @@ class Login(APIView):
         # Create a datetime object for one year in the future
         expires = datetime.utcnow() + timedelta(days=365)
 
-        # create Response, set status/data, add cookies then return response
+        # create Response, set status/data, add JWT cookies and return response
         response = Response(status=status.HTTP_200_OK)
         response.data = data
-        response.set_cookie(
-            key='access_token', value=tokens['access_token'], 
-            httponly=True, expires=expires)
-        response.set_cookie(
-            key='refresh_token', value=tokens['refresh_token'], 
-            httponly=True, expires=expires)            
+        if remember_me:
+            response.set_cookie(
+                key='access_token', value=tokens['access_token'], 
+                httponly=True, expires=expires)
+            response.set_cookie(
+                key='refresh_token', value=tokens['refresh_token'], 
+                httponly=True, expires=expires)          
 
         return response
 

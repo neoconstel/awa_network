@@ -144,7 +144,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': 
     (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'user.api.custom_auth.JWTAuthenticationViaCookies'
+        'user.api.custom_auth.JWTAuthenticationViaCookies',
+        'rest_framework.authentication.SessionAuthentication',
     )
 }
 
@@ -156,3 +157,5 @@ SIMPLE_JWT = {
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
