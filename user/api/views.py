@@ -86,7 +86,10 @@ class Register(APIView):
 
             return Response(data, status=status.HTTP_200_OK)
 
-        return Response (serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # get the topmost error in string form from every validation error
+        data['error'] = serializer.errors[list(serializer.errors)[0]][0]
+
+        return Response (data, status=status.HTTP_400_BAD_REQUEST)
 
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
