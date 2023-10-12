@@ -1,4 +1,7 @@
 from django.db import models
+from django.utils import timezone
+import time
+import random
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -38,14 +41,18 @@ class File(models.Model):
 
         # file will be uploaded to MEDIA_ROOT/media_type/filename
         # e.g /media/images/Itachi.png
-        return f'{instance.file_type.name}/{filename}'
+        return (            
+            f'{instance.file_type.name}/{random.randint(1000000, 9999999)}'
+            f'_{time.strftime("%b-%d-%Y__%H-%M-%S__%z")}'
+            f'_{filename}'
+        )
 
-    name = models.CharField(max_length=100)
     file_type = models.ForeignKey(FileType, on_delete=models.CASCADE)
     resource = models.FileField(upload_to=user_directory_path)
+    upload_date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"File{self.id} | {self.name} | {self.file_type.name}"
+        return f"File{self.id} | {self.resource.name}"
 
 
 class Artwork(models.Model):
@@ -54,7 +61,7 @@ class Artwork(models.Model):
         File, on_delete=models.CASCADE, related_name='artwork')
     category = models.ForeignKey(ArtCategory, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
-    tags = models.CharField(max_length=200)
+    tags = models.CharField(max_length=200, blank=True, null=True)
     views = models.IntegerField(default=0)
     likes = models.IntegerField(default=0)
 
@@ -71,4 +78,3 @@ class Following(models.Model):
 
     def __str__(self):
         return f"Following{self.id}: {self.follower} -> {self.following}"
-        
