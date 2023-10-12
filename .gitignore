@@ -89,8 +89,6 @@ media/
 .env
 db.sqlite3
 venv
-static
-
 
 
 
