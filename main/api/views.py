@@ -50,39 +50,36 @@ class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
 
         # get dictionary equivalent of POST data and add additional data
         data = request.POST.dict()  # {'title': title, 'content': content,...}
-        # data = json.loads(request.body)
-        # data['artist'] = self.request.user.artist_instance
-        data['category'] = ArtCategory.objects.get(pk=int(data['category']))
+        data['artist'] = self.request.user.artist_instance
 
-        print(f"ORDERED_DICT: {data}\n\n\n")
-        print(f"\n\nrequest.FILES: {self.request.FILES['file'].name}\n\n\n")
+        # print(f"ORDERED_DICT: {data}\n\n\n")
 
         serializer = ArtworkSerializer(data=data)
 
         if serializer.is_valid():
             # create a post instance using the POST data
+            data['category'] = ArtCategory.objects.get(id=data['category'])
+
+            from django.core.files import File as DjangoFile
+            
+            # the uploaded file must be wrapped into a file object
+            wrapped_request_file = DjangoFile(request.FILES['file'])
+
+            file_type = FileType.objects.get(name=data['file_type'])
+
+            # create a FieldFile instance using the file object
+            file = File(file_type=file_type, resource=wrapped_request_file)
+
+            file.save()
+            data["file"] = file
+
+            # remove unrelated data from dictionary before creating Artist
+            data.pop('file_type')
+
             artwork = Artwork(**data)
             artwork.save()            
 
-            valid_data = serializer.data
-
-            # image upload
-            # request_file_object = request.FILES['file']
-            # file_storage = FileSystemStorage()
-            # file_name = str(request_file_object).split('.')[0]
-            # stored_file = file_storage.save(file_name, request_file_object)
-            # file_url = file_storage.url(stored_file)
-            # valid_data["file"] = {"url": file_url}
-
-            from django.core.files import File as DjangoFile
-
-            # with open('/path/to/existing_file.txt') as f:
-            wrapped_file = DjangoFile(request.FILES['file'])
-            m = File(resource=wrapped_file)
-            m.save()
-            valid_data["file"] = {"url": m.url}
-
-            return Response(valid_data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
