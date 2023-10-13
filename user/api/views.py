@@ -167,8 +167,14 @@ class Logout(APIView):
 
         response = Response(status=status.HTTP_200_OK)
         response.data = data
+
+        # delete jwt cookies
         response.delete_cookie('access_token')
         response.delete_cookie('refresh_token')
+
+        # delete session cookies
+        response.delete_cookie('csrftoken')
+        response.delete_cookie('sessionid')
 
         print("logged out")
         return response
