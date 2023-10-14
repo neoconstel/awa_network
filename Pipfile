@@ -12,6 +12,7 @@ djangorestframework-simplejwt = "*"
 cryptography = "*"
 requests = "*"
 django-cors-headers = "*"
+django-import-export = "*"
 
 [dev-packages]
 
