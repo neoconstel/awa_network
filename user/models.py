@@ -43,9 +43,6 @@ class AccountManager(BaseUserManager):
                                             password, **other_fields)
 
 
-
-
-
 # create the custom user model
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField('email address', unique=True)
@@ -82,10 +79,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         new_user = super().save(*args, **kwargs)      
         return new_user
 
+
 class InvalidAccessToken(models.Model):
     token = models.CharField(max_length=1000)
     datetime = models.DateTimeField(default=timezone.now)
-    
-
-
     
