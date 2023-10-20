@@ -50,7 +50,7 @@ class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
 
         # get dictionary equivalent of POST data and add additional data
         data = request.POST.dict()  # {'title': title, 'content': content,...}
-        data['artist'] = self.request.user.artist_instance
+        data['artist'] = self.request.user.artist
 
         # print(f"ORDERED_DICT: {data}\n\n\n")
 

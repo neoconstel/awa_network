@@ -10,7 +10,7 @@ User = get_user_model()
 # Create your models here.
 class Artist(models.Model):
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='artist_instance')
+        User, on_delete=models.CASCADE, related_name='artist')
     views = models.IntegerField(default=0)
     likes = models.IntegerField(default=0)
 
@@ -56,7 +56,8 @@ class File(models.Model):
 
 
 class Artwork(models.Model):
-    artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
+    artist = models.ForeignKey(
+        Artist, on_delete=models.CASCADE, related_name='artworks')
     file = models.OneToOneField(
         File, on_delete=models.CASCADE, related_name='artwork')
     category = models.ForeignKey(ArtCategory, on_delete=models.CASCADE)
