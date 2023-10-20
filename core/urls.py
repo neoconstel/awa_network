@@ -17,6 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+# staticfile configs
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
@@ -24,6 +27,10 @@ urlpatterns = [
     path('auth/', include('user.api.urls')),
     path('api/', include('main.api.urls')),
 ]
+
+# make it possible to use media_url in frontend to access backend media content
+# (e.g <img src="http://localhost:8000/media/image/meg.jpg" alt="my image"/>)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # fixes issue of admin staticfiles missing when served from http://localhost
 urlpatterns += staticfiles_urlpatterns()
