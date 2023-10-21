@@ -33,12 +33,15 @@ from user.api.views import get_jwt_access_tokens_for_user
 # Static/Media
 from django.core.files.storage import FileSystemStorage
 
+# pagination
+from .pagination import ArtworkPaginationConfig
+
 
 class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                                 generics.GenericAPIView):
 
     permission_classes = [IsAuthenticatedElseReadOnly]
-    # pagination_class = 
+    pagination_class = ArtworkPaginationConfig
     ordering = '-id'
 
     serializer_class = ArtworkSerializer
