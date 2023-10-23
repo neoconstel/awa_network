@@ -69,6 +69,14 @@ class UserReadOnlySerializer(UserSerializer):
     Another suitable use is to return user public info on login. Just serialize
     the authenticated user instance with this, and return the data which is
     safe for storing on the browser.'''
+    # custom serializer field
+    name = serializers.SerializerMethodField()
+
+    # custom serializer field method to get property
+    # syntax: get_<custom serializer field name>
+    def get_name(self, object):
+        return f'{object.first_name} {object.last_name}'
+
     class Meta:
         model = UserSerializer.Meta.model
         exclude = ['email','password'] # hide confidential info when read
