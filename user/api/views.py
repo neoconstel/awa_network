@@ -9,7 +9,7 @@ from user.models import User, InvalidAccessToken
 from django.db.models import Q
 
 # serializers
-from .serializers import UserSerializer
+from .serializers import UserSerializer, UserReadOnlySerializer
 
 # response / status
 from rest_framework.response import Response
@@ -139,20 +139,7 @@ class Login(APIView):
 
         data = {
             'status': 'logged in',
-            'user': {
-                'id': user.id,
-                'username': user.username,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'gender': user.gender,
-                'bio': user.bio,
-                'membership': user.membership,
-                'date_registered': user.date_registered,
-                'profile_image': user.profile_image.url,
-                'is_staff': user.is_staff,
-                'is_active': user.is_active,
-                'is_verified': user.is_verified
-            }
+            'user': UserReadOnlySerializer(user).data
         }
 
         # Create a datetime object for one year in the future
