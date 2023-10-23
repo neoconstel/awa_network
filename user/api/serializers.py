@@ -55,4 +55,25 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(password) # encrypts the raw password
         user.save()
         return user
+
+
+class UserReadOnlySerializer(UserSerializer):
+    '''this class is intended for use in other serializers which depend on the
+    user model, most especially in the case of serializer nesting. For example, 
+    an ArtistSerializer needs to nest the UserSerializer while hiding 
+    confidential info. To do that, confidential fields have been excluded here.
+    The save() method has also been overridden to ensure that this "ReadOnly" 
+    version of the UserSerializer class cannot be used to manipulate 
+    the database.
+    
+    Another suitable use is to return user public info on login. Just serialize
+    the authenticated user instance with this, and return the data which is
+    safe for storing on the browser.'''
+    class Meta:
+        model = UserSerializer.Meta.model
+        exclude = ['email','password'] # hide confidential info when read
         
+    # make this class unable to write to database (readonly)
+    def save():
+        pass
+    
