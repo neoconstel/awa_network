@@ -154,7 +154,16 @@ class ArtistDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
     queryset = Artist.objects.all()
     serializer_class = ArtistSerializer
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):        
+        # get by 'username' in addition to the default 'pk'
+        username = kwargs.get("username")
+        if username:
+            artist = Artist.objects.filter(user__username=username).first()
+            serializer = ArtistSerializer(artist, data={})
+            if serializer.is_valid() and artist:
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
+
         return self.retrieve(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
