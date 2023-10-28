@@ -8,7 +8,7 @@ from user.models import User
 from django.contrib.contenttypes.models import ContentType
 
 # serializers
-from .serializers import ArtworkSerializer
+from .serializers import ArtworkSerializer, ArtistSerializer
 
 # response / status
 from rest_framework.response import Response
@@ -24,7 +24,8 @@ from rest_framework import mixins
 from django.contrib.auth import authenticate, login
 
 # permissions
-from .permissions import IsAuthenticatedElseReadOnly,IsArtworkAuthorElseReadOnly
+from .permissions import (IsAuthenticatedElseReadOnly,
+IsArtworkAuthorElseReadOnly,IsArtistUserElseReadOnly)
 
 # jwt authentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -34,7 +35,7 @@ from user.api.views import get_jwt_access_tokens_for_user
 from django.core.files.storage import FileSystemStorage
 
 # pagination
-from .pagination import ArtworkPaginationConfig
+from .pagination import ArtworkPaginationConfig, ArtistPaginationConfig
 
 
 class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -127,3 +128,35 @@ class ArtworkDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
+
+
+class ArtistList(mixins.ListModelMixin, mixins.CreateModelMixin,
+                                                generics.GenericAPIView):
+
+    permission_classes = [IsAuthenticatedElseReadOnly]
+    pagination_class = ArtistPaginationConfig
+    ordering = '-id'
+
+    serializer_class = ArtistSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return Artist.objects.order_by(ArtistList.ordering).all()
+
+
+class ArtistDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
+                        mixins.DestroyModelMixin, generics.GenericAPIView):
+
+    permission_classes = [IsArtistUserElseReadOnly]
+
+    queryset = Artist.objects.all()
+    serializer_class = ArtistSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+

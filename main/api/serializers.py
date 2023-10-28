@@ -3,8 +3,7 @@ from rest_framework import serializers
 from main.models import Artwork, Artist
 from django.conf import settings
 
-from user.api.serializers import UserSerializer, UserReadOnlySerializer
-from user.models import User
+from user.api.serializers import UserReadOnlySerializer
 
 
 class ArtistSerializer(serializers.ModelSerializer):
