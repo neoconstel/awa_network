@@ -6,6 +6,7 @@ from django.conf import settings
 from main.models import (Artist, Artwork, File, FileType, ArtCategory)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 
 # serializers
 from .serializers import ArtworkSerializer, ArtistSerializer
@@ -100,9 +101,17 @@ class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
             elif filter == 'category':
                 filtered_query = Artwork.objects.filter(
                                 category__name__icontains=search_term).all()
-            elif filter == 'author':
+            elif filter == 'artist':
                 filtered_query = Artwork.objects.filter(
-                        user__username__istartswith=search_term).all()
+                        artist__user__username__iexact=search_term).all()
+            elif filter == 'username':
+                filtered_query = Artwork.objects.filter(
+                        artist__user__username__istartswith=search_term).all()
+            elif filter == 'name':
+                filtered_query = Artwork.objects.filter(
+                        Q(artist__user__first_name__in=search_term)
+                        | Q(artist__user__last_name__in=search_term)
+                        ).all()
             elif filter == 'tags':
                 filtered_query = Artwork.objects.filter(
                                 tags__icontains=search_term).all()
