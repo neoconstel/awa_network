@@ -34,10 +34,10 @@ from django.contrib.auth import login
 
 
 # frontend URL to redirect to from email during email verification
-VERIFY_REDIRECT_URL = f"{settings.CLIENT_DOMAIN}/AWA-Network/verify_email"
+VERIFY_REDIRECT_URL = f"{settings.CLIENT_DOMAIN}/verify_email"
 
 # frontend URL to redirect to from email during password reset
-RESET_REDIRECT_URL = f"{settings.CLIENT_DOMAIN}/AWA-Network/reset_password"
+RESET_REDIRECT_URL = f"{settings.CLIENT_DOMAIN}/reset_password"
 
 
 def verify_token(token):
