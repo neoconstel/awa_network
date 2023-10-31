@@ -79,3 +79,26 @@ class Following(models.Model):
 
     def __str__(self):
         return f"Following{self.id}: {self.follower} -> {self.following}"
+
+
+class SpotlightArt(models.Model):
+    artwork = models.OneToOneField(Artwork, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f"SpotlightArt{self.id} | {self.artwork.title}"
+
+    def save(self, *args, **kwargs):
+        # if trying to save new instance and an instance already exists, abort
+        if (not self.pk) and self.__class__.objects.count():
+            print("Only one instance of SpotlightArt is allowed. Save aborted")
+        else:
+            super().save(*args, **kwargs)
+            
+
+
+# class CarouselAsset(models.Model):
+#     # instances with same carousel_group belong to the same carousel
+#     carousel_group = models.IntegerField(default=1)
+#     position = models.IntegerField(default=1) # sorted carousel position
+#     file = models.OneToOneField(
+#         File, on_delete=models.CASCADE, related_name='carousel_asset')
