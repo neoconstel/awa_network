@@ -32,23 +32,32 @@ class FileType(models.Model):
         return f"FileType{self.id} | {self.name}"
 
 
+class FileGroup(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"FileGroup{self.id} | {self.name}"
+
+
 class File(models.Model):
-    def user_directory_path(instance, filename):
+    def save_path(instance, filename):
         '''
         instance: the File instance
         filename: the original name of the resource e.g "Itachi.png"
         '''
 
-        # file will be uploaded to MEDIA_ROOT/media_type/filename
-        # e.g /media/images/Itachi.png
-        return (            
+        # file will be uploaded to MEDIA_ROOT/media_group/media_type/filename
+        # e.g /media/artworks/images/Itachi.png
+        return (
+            f'{instance.file_group.name}/'            
             f'{instance.file_type.name}/{random.randint(1000000, 9999999)}'
             f'_{time.strftime("%b-%d-%Y__%H-%M-%S__%z")}'
             f'_{filename}'
         )
 
     file_type = models.ForeignKey(FileType, on_delete=models.CASCADE)
-    resource = models.FileField(upload_to=user_directory_path)
+    file_group = models.ForeignKey(FileGroup, on_delete=models.CASCADE)
+    resource = models.FileField(upload_to=save_path)
     upload_date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
@@ -95,10 +104,15 @@ class SpotlightArt(models.Model):
             super().save(*args, **kwargs)
             
 
+# class Carousel(models.Model):
+#     name = models.CharField(max_length=100, default='carousel')
 
-# class CarouselAsset(models.Model):
-#     # instances with same carousel_group belong to the same carousel
-#     carousel_group = models.IntegerField(default=1)
+#     def __str__(self):
+#         return f"Carousel{self.id}"
+
+
+# class CarouselContent(models.Model):
+#     carousel = models.ForeignKey(Carousel, on_delete=models.CASCADE)
 #     position = models.IntegerField(default=1) # sorted carousel position
 #     file = models.OneToOneField(
-#         File, on_delete=models.CASCADE, related_name='carousel_asset')
+#         File, on_delete=models.CASCADE, related_name='carousel_content')

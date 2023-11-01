@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=100)),
-                ('resource', models.FileField(upload_to=main.models.File.user_directory_path)),
+                ('resource', models.FileField(upload_to=main.models.File.save_path)),
                 ('file_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='main.filetype')),
             ],
         ),

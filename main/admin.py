@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (Artist, FileType, File, Artwork, Following, ArtCategory,
-SpotlightArt)
+SpotlightArt, FileGroup)
 
 from import_export.admin import ExportActionMixin
 
@@ -23,3 +23,4 @@ admin.site.register(File)
 admin.site.register(Artwork, ArtworkAdmin)
 admin.site.register(Following)
 admin.site.register(SpotlightArt)
+admin.site.register(FileGroup)
