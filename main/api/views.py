@@ -3,7 +3,8 @@ import json
 from django.conf import settings
 
 # models
-from main.models import (Artist, Artwork, File, FileType, ArtCategory)
+from main.models import (
+    Artist, Artwork, File, FileType, FileGroup, ArtCategory)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -71,9 +72,12 @@ class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
             wrapped_request_file = DjangoFile(request.FILES['file'])
 
             file_type = FileType.objects.get(name=data['file_type'])
+            file_group = FileGroup.objects.get(name='artworks')
 
             # create a FieldFile instance using the file object
-            file = File(file_type=file_type, resource=wrapped_request_file)
+            file = File(
+                file_type=file_type, file_group=file_group,
+                 resource=wrapped_request_file)
 
             file.save()
             data["file"] = file
