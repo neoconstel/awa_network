@@ -15,22 +15,37 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 
-# staticfile configs
+# wagtail imports
+from wagtail import urls as wagtail_urls
+from wagtail.admin import urls as wagtailadmin_urls
+from wagtail.documents import urls as wagtaildocs_urls
+
+# for staticfile configs
 from django.conf import settings
-from django.conf.urls.static import static
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('django-admin/', admin.site.urls),
     path('auth/', include('user.api.urls')),
     path('api/', include('main.api.urls')),
+
+    path('admin/', include(wagtailadmin_urls)),
+    path('documents/', include(wagtaildocs_urls)),
+
+    # this should be last
+    re_path(r'', include(wagtail_urls)),
 ]
 
-# make it possible to use media_url in frontend to access backend media content
-# (e.g <img src="http://localhost:8000/media/image/meg.jpg" alt="my image"/>)
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-# fixes issue of admin staticfiles missing when served from http://localhost
-urlpatterns += staticfiles_urlpatterns()
+if settings.DEBUG:
+    from django.conf.urls.static import static
+    from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+
+    # --------Serve static and media files from development server-------
+    # fixes issue of admin staticfiles missing when served from http://localhost
+    urlpatterns += staticfiles_urlpatterns()
+
+    # make it possible to use media_url in frontend to access backend media content
+    # (e.g <img src="http://localhost:8000/media/image/meg.jpg" alt="my image"/>)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

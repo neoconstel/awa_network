@@ -15,6 +15,7 @@ django-cors-headers = "*"
 django-import-export = "*"
 tablib = "*"
 django-rest-framework-multi-slug-field = "*"
+wagtail = "*"
 
 [dev-packages]
 
