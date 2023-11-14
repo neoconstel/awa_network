@@ -226,3 +226,7 @@ WAGTAILSEARCH_BACKENDS = {
 TAGGIT_CASE_INSENSITIVE = True
 
 WAGTAILADMIN_BASE_URL = DOMAIN
+
+WAGTAIL_USER_EDIT_FORM = 'user.wagtail_forms.CustomUserEditForm'
+WAGTAIL_USER_CREATION_FORM = 'user.wagtail_forms.CustomUserCreationForm'
+WAGTAIL_USER_CUSTOM_FIELDS = ['membership']
