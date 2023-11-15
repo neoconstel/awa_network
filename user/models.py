@@ -72,6 +72,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
+    def get_username(self) -> str:
+        return self.username
+
     def save(self, *args, **kwargs) -> None:
         # give UNIQUE default username until user sets desired username.
         if not self.username:
