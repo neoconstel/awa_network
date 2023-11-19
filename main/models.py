@@ -80,7 +80,6 @@ class Artwork(models.Model):
 
 
 class Following(models.Model):
-
     follower = models.ForeignKey(
         Artist, on_delete=models.CASCADE, related_name='following')
     following = models.ForeignKey(

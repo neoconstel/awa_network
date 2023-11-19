@@ -229,4 +229,7 @@ WAGTAILADMIN_BASE_URL = DOMAIN
 
 WAGTAIL_USER_EDIT_FORM = 'user.wagtail_forms.CustomUserEditForm'
 WAGTAIL_USER_CREATION_FORM = 'user.wagtail_forms.CustomUserCreationForm'
-WAGTAIL_USER_CUSTOM_FIELDS = ['membership']
+WAGTAIL_USER_CUSTOM_FIELDS = [
+    'email', 'username', 'first_name', 'last_name', 'gender', 'is_staff',
+     'is_active', 'is_verified', 'profile_image', 'bio', 'membership']
+     

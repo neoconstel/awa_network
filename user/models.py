@@ -69,9 +69,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self) -> str:
         return self.username
 
+    # useful in wagtail admin user list
     def get_full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
+    # useful in wagtail admin user list
     def get_username(self) -> str:
         return self.username
 
@@ -80,10 +82,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         if not self.username:
             self.username = (
                 f"user_{int(time.time()) + self.__class__.objects.count()}"
-                f"{random.randint(1000,9999)}")            
+                f"{random.randint(1000,9999)}")        
 
-        new_user = super().save(*args, **kwargs)      
-        return new_user
+        # doesn't return anything
+        super().save(*args, **kwargs)
 
 
 class InvalidAccessToken(models.Model):
