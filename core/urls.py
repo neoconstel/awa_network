@@ -22,6 +22,8 @@ from wagtail import urls as wagtail_urls
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
+from user.wagtail.api.viewsets import api_router
+
 # for staticfile configs
 from django.conf import settings
 
@@ -32,6 +34,11 @@ urlpatterns = [
 
     path('admin/', include(wagtailadmin_urls)),
     path('documents/', include(wagtaildocs_urls)),
+
+
+    # WAGTAIL API ENDPOINTS (pages, images, documents)
+    path('api/v2/', api_router.urls),
+
 
     # this should be last
     re_path(r'', include(wagtail_urls)),

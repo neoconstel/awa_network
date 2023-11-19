@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 import re
-from .models import User
+from ..models import User
 
 from wagtail.users.forms import UserEditForm, UserCreationForm
 
