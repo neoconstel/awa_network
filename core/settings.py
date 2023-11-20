@@ -78,6 +78,8 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -104,12 +106,6 @@ TEMPLATES = [
             ],
         },
     },
-]
-
-
-# added -- list of extra paths where static files shoule be searched for
-STATICFILES_DIRS = [
-    # os.path.join(BASE_DIR, 'static')
 ]
 
 
@@ -163,11 +159,22 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_ROOT = 'media/'
 
 MEDIA_URL = 'media/'
+
+# added -- list of extra paths where static files shoule be searched for
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static')
+]
+
+# use whitenoise for cachable files/compression support
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+WHITENOISE_MIMETYPES = {'.js': 'text/javascript'}
 
 
 # Default primary key field type

@@ -12,16 +12,33 @@ def is_valid_email(email):
     pattern = "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])"
     return bool(re.match(pattern, email))
 
-# enter fields from the custom user model which should be displayed in
-# wagtail user create/user edit forms. The "membership" field of the custom
-# user model is used as an example.
+
+class CustomSettingsForm(forms.ModelForm):
+    '''for modifying the appearance of the account settings form'''
+    class Meta:
+        model = User
+        fields = ['email', 'username', 'gender', 'membership']
+
+    def save(self, *args, **kwargs):
+        # the default admin settings form can't be overridden, and it has
+        # problems with the default email field which doesn't submit the 
+        # value passed in it and the result is that the user instance.email
+        # takes the value of the username. I have hidden it with custom 
+        # javascript as a workaround. This second email field, 
+        # which is overridable, will be used instead.
+        self.instance.email = self.cleaned_data.get('email')
+
+        return super().save(*args, **kwargs)
+
+
 class CustomUserEditForm(UserEditForm):
+    '''for modifying the wagtail user edit form. The fields in the
+    form are the fields from the User model'''
     username = forms.CharField(required=True, label=_("Username"))
     gender = forms.CharField(required=False, label=_("Gender"))
     membership = forms.CharField(required=False, label=_("Membership"))
     bio = forms.CharField(required=False, label=_("Bio"))
     is_staff = forms.BooleanField(required=False, label=_("Is Staff"))
-    is_active = forms.BooleanField(required=False, label=_("Is Active"))
     is_verified = forms.BooleanField(required=False, label=_("Is Verified"))
     profile_image = forms.ImageField(required=False, label=_("Profile Image"))
 
@@ -36,6 +53,8 @@ class CustomUserEditForm(UserEditForm):
 
 
 class CustomUserCreationForm(UserCreationForm):
+    '''for modifying the wagtail user create form. The fields in the
+    form are the fields from the User model'''
     username = forms.CharField(required=False, label=_("Username"))
     gender = forms.CharField(required=False, label=_("Gender"))
     membership = forms.CharField(required=False, label=_("Membership"))

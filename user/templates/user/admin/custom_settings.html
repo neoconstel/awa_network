@@ -1,0 +1,9 @@
+{# templates/user/admin/custom_settings.html #}
+
+{# This is the default template Wagtail uses, which just renders the form #}
+
+{% block content %}
+{% for field in form %}
+{% include "wagtailadmin/shared/field.html" with field=field %}
+{% endfor %}
+{% endblock %}
