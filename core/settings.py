@@ -218,10 +218,9 @@ WAGTAIL_SITE_NAME = 'Animation West Africa Network'
 
 # Replace the search backend
 WAGTAILSEARCH_BACKENDS = {
- 'default': {
-   'BACKEND': 'wagtail.search.backends.elasticsearch8',
-   'INDEX': 'myapp'
- }
+    "default": {
+        "BACKEND": "wagtail.search.backends.database",
+    }
 }
 
 # Wagtail email notifications from address
