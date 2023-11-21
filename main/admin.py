@@ -2,6 +2,9 @@ from django.contrib import admin
 from .models import (Artist, FileType, File, Artwork, Following, ArtCategory,
 SpotlightArt, FileGroup)
 
+# wagtail
+from .models import Page
+
 from import_export.admin import ExportActionMixin
 
 # import your resource classes
@@ -24,3 +27,7 @@ admin.site.register(Artwork, ArtworkAdmin)
 admin.site.register(Following)
 admin.site.register(SpotlightArt)
 admin.site.register(FileGroup)
+
+
+# wagtail
+admin.site.register(Page)

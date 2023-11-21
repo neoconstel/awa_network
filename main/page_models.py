@@ -30,3 +30,27 @@ class HomePage(BasePage):
     # search_fields = Page.search_fields + [
     #     index.SearchField('body')
     # ]
+
+
+class SpotlightPage(BasePage):
+    pass
+
+
+class TvPage(BasePage):
+    pass
+
+
+class ReviewsPage(BasePage):
+    pass
+
+
+class ChallengePage(BasePage):
+    pass
+
+
+class MagazinePage(BasePage):
+    pass
+
+
+class FoundationPage(BasePage):
+    pass
