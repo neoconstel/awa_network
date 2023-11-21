@@ -115,3 +115,9 @@ class SpotlightArt(models.Model):
 #     position = models.IntegerField(default=1) # sorted carousel position
 #     file = models.OneToOneField(
 #         File, on_delete=models.CASCADE, related_name='carousel_content')
+
+
+# execute this part only from models.py in the 'main' app
+if __name__ == 'main.models':
+    # import wagtail page models
+    from .page_models import *
