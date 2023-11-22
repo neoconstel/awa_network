@@ -9,11 +9,12 @@ from wagtail.search import index
 
 
 class BasePage(Page):
-    pass
+    is_creatable = False # List Page type in admin? (not inherited)
 
 
 class HomePage(BasePage):
-    pass
+    parent_page_types = ['wagtailcore.Page']
+
     # body = models.TextField(help_text='blablabla', blank=True)
 
     # content_panels = Page.content_panels + [
@@ -33,24 +34,31 @@ class HomePage(BasePage):
 
 
 class SpotlightPage(BasePage):
-    pass
+    parent_page_types = ['main.HomePage']
+    max_count = 1
 
 
 class TvPage(BasePage):
-    pass
+    parent_page_types = ['main.HomePage']
+    max_count = 1
 
 
 class ReviewsPage(BasePage):
-    pass
+    parent_page_types = ['main.HomePage']
+    max_count = 1
 
 
 class ChallengePage(BasePage):
-    pass
+    parent_page_types = ['main.HomePage']
+    max_count = 1
 
 
 class MagazinePage(BasePage):
-    pass
+    parent_page_types = ['main.HomePage']
+    max_count = 1
 
 
 class FoundationPage(BasePage):
-    pass
+    parent_page_types = ['main.HomePage']
+    max_count = 1
+    
