@@ -1,9 +1,11 @@
-from .models import *
+from django.db import models
 
-from wagtail.models import Page
+from wagtail.models import Page, Orderable
 from wagtail.fields import RichTextField
-from wagtail.admin.panels import FieldPanel
+from wagtail.admin.panels import FieldPanel, InlinePanel
 from wagtail.api import APIField
+
+from modelcluster.fields import ParentalKey
 
 from wagtail.search import index
 
@@ -17,9 +19,16 @@ class HomePage(BasePage):
 
     # body = models.TextField(help_text='blablabla', blank=True)
 
-    # content_panels = Page.content_panels + [
-    #     FieldPanel('body'),
-    # ]
+    def main_image(self):
+        gallery_item = self.gallery_images.first()
+        if gallery_item:
+            return gallery_item.image
+        else:
+            return None
+
+    content_panels = Page.content_panels + [
+        InlinePanel('sliding_images', label="Sliding images"),
+    ]
 
     # # To show custom fields in the API results, the fields must be included in 
     # # api_fields and then also included in the urlparams, as shown:
@@ -31,6 +40,19 @@ class HomePage(BasePage):
     # search_fields = Page.search_fields + [
     #     index.SearchField('body')
     # ]
+
+
+class HomePageSlidingImage(Orderable):
+    page = ParentalKey(HomePage, on_delete=models.CASCADE, related_name='sliding_images')
+    image = models.ForeignKey(
+        'wagtailimages.Image', on_delete=models.CASCADE, related_name='+'
+    )
+    caption = models.CharField(blank=True, max_length=250)
+
+    panels = [
+        FieldPanel('image'),
+        FieldPanel('caption'),
+    ]
 
 
 class SpotlightPage(BasePage):
