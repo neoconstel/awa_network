@@ -55,7 +55,8 @@ class Artwork(models.Model):
     views = models.IntegerField(default=0)
     likes = models.IntegerField(default=0)
 
-    
+    # TODO: validate that there actually exists an object with content_type
+    # and object_id
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.IntegerField()
 

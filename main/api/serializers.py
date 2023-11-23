@@ -37,7 +37,15 @@ class ArtworkSerializer(serializers.ModelSerializer):
     # custom serializer field method to get property
     # syntax: get_<custom serializer field name>
     def get_file_url(self, object):
-        return f"{settings.DOMAIN}/{object.file.resource.url}"
+        '''this method returns an OrderedDict during the Artwork creation,
+        as it isn't yet a valid object. Just data. And no url to be returned
+        yet. Hence this try block'''
+        try:
+            object.pk # object has id.
+        except:
+            return ""
+        else:
+            return f"{settings.DOMAIN}/{object.content_object.resource.url}"
 
     # nested field: nest artist serializer into this
     artist = ArtistSerializer(many=False, read_only=True)
@@ -45,6 +53,34 @@ class ArtworkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Artwork
         fields = '__all__'
+
+        # content_type/object_id are set False because at POST (creation of
+        # Artwork instance, there isn't yet a file content_type/object_id)
         extra_kwargs = {
-            'artist': {'read_only': True}
+            'artist': {'read_only': True},
+            'content_type': {'required': False},
+            'object_id': {'required': False}
         }
+
+    def validate(self, data):
+        super().validate(data)
+
+        content_type = data.get('content_type')
+        object_id = data.get('object_id')
+
+        if content_type and object_id:
+            #TODO: also implement unique together constraint
+            try:
+                content_type.get_object_for_this_type(id=object_id)
+            except:
+                raise serializers.ValidationError(
+                    "object_id invalid for content_type!")
+
+        elif content_type:
+            raise serializers.ValidationError("content_type needs object_id!")
+
+        elif object_id:
+            raise serializers.ValidationError("object_id needs content_type!")
+
+        
+        return data

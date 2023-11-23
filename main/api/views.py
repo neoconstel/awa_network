@@ -4,7 +4,7 @@ from django.conf import settings
 
 # models
 from main.models import (
-    Artist, Artwork, File, FileType, FileGroup, ArtCategory)
+    Artist, Artwork, File, FileType, FileGroup, ArtCategory, Image)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -74,21 +74,33 @@ class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
             file_type = FileType.objects.get(name=data['file_type'])
             file_group = FileGroup.objects.get(name='artworks')
 
-            # create a FieldFile instance using the file object
-            file = File(
-                file_type=file_type, file_group=file_group,
-                 resource=wrapped_request_file)
+            # create (Image or File) FieldFile instance using the file object
+            if file_type.name == 'image':
+                
+                file = Image(
+                    file_group=file_group,resource=wrapped_request_file)
+            else:
+                file = File(
+                    file_type=file_type, file_group=file_group,
+                    resource=wrapped_request_file)
 
             file.save()
-            data["file"] = file
+
+            # data["file"] = file
+            data["content_type"] = ContentType.objects.get_for_model(file)
+            data["object_id"] = file.id
+            data["content_object"] = file
 
             # remove unrelated data from dictionary before creating Artist
             data.pop('file_type')
 
             artwork = Artwork(**data)
-            artwork.save()            
+            artwork.save()
 
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            output_data = serializer.data
+            output_data["file_url"] = artwork.content_object.resource.url           
+
+            return Response(output_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
