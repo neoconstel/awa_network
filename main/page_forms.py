@@ -1,0 +1,53 @@
+from django import forms
+from wagtail.admin.forms import WagtailAdminPageForm
+from django.core.exceptions import ValidationError
+from .models import Artwork
+
+
+# custom form for the HomePage model
+class HomePageForm(WagtailAdminPageForm):
+    '''The Page model which this form gets attached to (via the
+    'base_form_class' attribute) will automatically have its fields processed 
+    by this form. Extra fields can be added to the form. For instance:    
+    
+    address = forms.CharField()
+
+    Any extra fields must also be added to the page's field_panels in order to
+    have its fields visible for editing (as with the page's default fields).
+    '''
+
+    # validate specific field (syntax: clean_<field name>)
+    # def clean_spotlight_art(self):
+    #     spotlight_art = self.cleaned_data['spotlight_art']
+    #     if spotlight_art < 1:
+    #         raise ValidationError('spotlight art ID must be >= 1!')
+
+
+    # validate one or more fields
+    def clean(self):
+        # the default validations (for every field)
+        cleaned_data = super().clean()
+
+        # extra custom validation logic
+        spotlight_art = cleaned_data['spotlight_art']
+        if spotlight_art != None:
+            if not isinstance(spotlight_art, int):
+                self.add_error(
+                    'spotlight_art', 'spotlight_art must be a valid integer!')
+
+            else:
+                if not Artwork.objects.filter(id=spotlight_art).first():
+                    self.add_error('spotlight_art', f"The ID:\
+                            {spotlight_art} doesn't belong to any artwork!")
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        page = super().save(commit=False)
+
+        # logic of everything to be done before final save
+
+
+        if commit:
+            page.save()
+        return page

@@ -1,4 +1,6 @@
 from django.db import models
+from .models import Artwork
+from .page_forms import HomePageForm
 
 from wagtail.models import Page, Orderable
 from wagtail.fields import RichTextField
@@ -9,6 +11,9 @@ from modelcluster.fields import ParentalKey
 
 from wagtail.search import index
 
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+
 
 class BasePage(Page):
     is_creatable = False # List Page type in admin? (not inherited)
@@ -17,17 +22,22 @@ class BasePage(Page):
 class HomePage(BasePage):
     parent_page_types = ['wagtailcore.Page']
 
+    # custom form to be used when creating/editing page in admin
+    base_form_class = HomePageForm
+
     # body = models.TextField(help_text='blablabla', blank=True)
 
-    def main_image(self):
-        gallery_item = self.gallery_images.first()
-        if gallery_item:
-            return gallery_item.image
-        else:
-            return None
+    # this should be validated on page publish to ensure valid artwork id
+    spotlight_art = models.IntegerField(
+        help_text='ID of the Spotlight Art', blank=True, null=True)
 
     content_panels = Page.content_panels + [
+        FieldPanel('spotlight_art'),
         InlinePanel('sliding_images', label="Sliding images"),
+    ]
+
+    search_fields = Page.search_fields + [
+        index.SearchField('spotlight_art'),
     ]
 
     # # To show custom fields in the API results, the fields must be included in 
