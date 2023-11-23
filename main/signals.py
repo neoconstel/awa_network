@@ -46,8 +46,11 @@ def user_listener(sender, **kwargs):
 def artwork_listener(sender, **kwargs):
     model_instance = kwargs.get('instance')
     
-    # delete attached file instance
-    model_instance.file.delete()
+    # delete attached file instance (file or image object as per generic field)
+    # model_instance.file.delete()
+    content_object = model_instance.content_type.model_class().objects.get(
+        id=model_instance.object_id)
+    content_object.delete()
 
     # print(f'\n\n\nEXECUTED SIGNAL:  artwork deleted\n\n\n')
 
