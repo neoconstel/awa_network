@@ -102,13 +102,12 @@ class Login(APIView):
 
     def post(self, request):
         body = json.loads(request.body)
-        email = body.get('email')
-        username = body.get('username')
+        user_login = body.get('username')
         password = body.get('password')
         remember_me = body.get('rememberMe')
 
         user = User.objects.filter(
-            Q(email=email)|Q(username=username)).first()
+            Q(email=user_login)|Q(username=user_login)).first()
         
         # invalid or inactive user
         if not (user and user.check_password(password) and user.is_active):
