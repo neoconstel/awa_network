@@ -35,7 +35,10 @@ CRYPTOGRAPHY_KEY = os.environ.get('CRYPTOGRAPHY_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['neoconstel.pythonanywhere.com']
+ALLOWED_HOSTS = [
+    'neoconstel.pythonanywhere.com',
+    'localhost'
+]
 
 
 # Application definition
