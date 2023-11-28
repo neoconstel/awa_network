@@ -22,33 +22,37 @@ from wagtail import urls as wagtail_urls
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
+# for serving media files while in development
+from django.conf.urls.static import static
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+
+# for loading the entry html template
+from django.views.generic import TemplateView
+
 from user.wagtail.api.viewsets import api_router
 
 # for staticfile configs
 from django.conf import settings
 
 urlpatterns = [
-    path('django-admin/', admin.site.urls),
-    path('auth/', include('user.api.urls')),
-    path('api/', include('main.api.urls')),
+    re_path(r'^django-admin/*', admin.site.urls),
+    re_path(r'^auth/*', include('user.api.urls')),
+    re_path(r'^api/*', include('main.api.urls')),
 
-    path('admin/', include(wagtailadmin_urls)),
-    path('documents/', include(wagtaildocs_urls)),
+    re_path(r'^admin/*', include(wagtailadmin_urls)),
+    re_path(r'documents/*', include(wagtaildocs_urls)),
 
+    # # WAGTAIL API ENDPOINTS (pages, images, documents)
+    re_path(r'api/v2/*', api_router.urls),    
 
-    # WAGTAIL API ENDPOINTS (pages, images, documents)
-    path('api/v2/', api_router.urls),
-
-
-    # this should be last
+    # this should be last (if not using an external frontend like vue)
     re_path(r'', include(wagtail_urls)),
+
+    # the frontend urlpattern is added LAST, after staticfiles_urlpatterns.
+    # otherwise it would block media urlpatterns and disable display of media
 ]
 
-
 if settings.DEBUG:
-    from django.conf.urls.static import static
-    from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-
     # --------Serve static and media files from development server-------
     # fixes issue of admin staticfiles missing when served from http://localhost
     urlpatterns += staticfiles_urlpatterns()
@@ -56,3 +60,8 @@ if settings.DEBUG:
     # make it possible to use media_url in frontend to access backend media content
     # (e.g <img src="http://localhost:8000/media/image/meg.jpg" alt="my image"/>)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+urlpatterns += [
+    # This should be the VERY LAST! (for routung unknown urls to the frontend)
+    re_path('', TemplateView.as_view(template_name="main/home_page.html"))
+]
