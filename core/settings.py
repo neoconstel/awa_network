@@ -35,7 +35,7 @@ CRYPTOGRAPHY_KEY = os.environ.get('CRYPTOGRAPHY_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['neoconstel.pythonanywhere.com']
 
 
 # Application definition
@@ -189,7 +189,7 @@ REST_FRAMEWORK = {
 		'rest_framework.permissions.IsAuthenticated',
 	    ],
 
-    'DEFAULT_AUTHENTICATION_CLASSES': 
+    'DEFAULT_AUTHENTICATION_CLASSES':
     (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'user.api.custom_auth.JWTAuthenticationViaCookies',
