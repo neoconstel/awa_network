@@ -43,10 +43,7 @@ urlpatterns = [
     re_path(r'documents/*', include(wagtaildocs_urls)),
 
     # # WAGTAIL API ENDPOINTS (pages, images, documents)
-    re_path(r'api/v2/*', api_router.urls),    
-
-    # this should be last (if not using an external frontend like vue)
-    re_path(r'', include(wagtail_urls)),
+    re_path(r'api/v2/*', api_router.urls),
 
     # the frontend urlpattern is added LAST, after staticfiles_urlpatterns.
     # otherwise it would block media urlpatterns and disable display of media
@@ -62,6 +59,9 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += [
+    # this should be last (if not using an external frontend like vue)
+    # re_path(r'', include(wagtail_urls)),
+
     # This should be the VERY LAST! (for routung unknown urls to the frontend)
     re_path('', TemplateView.as_view(template_name="main/home_page.html"))
 ]
