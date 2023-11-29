@@ -45,7 +45,7 @@ class ArtworkSerializer(serializers.ModelSerializer):
         except:
             return ""
         else:
-            return f"{settings.DOMAIN}/{object.content_object.resource.url}"
+            return f"{object.content_object.resource.url}"
 
     # nested field: nest artist serializer into this
     artist = ArtistSerializer(many=False, read_only=True)
