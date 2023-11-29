@@ -210,7 +210,10 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 # frontend domain
-CSRF_TRUSTED_ORIGINS = ['http://localhost:5173']
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    'http://neoconstel.pythonanywhere.com'
+]
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
