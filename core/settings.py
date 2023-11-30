@@ -171,7 +171,10 @@ MEDIA_URL = 'media/'
 
 # added -- list of extra paths where static files shoule be searched for
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')
+    os.path.join(BASE_DIR, 'static'),
+
+    # local (development) vue frontend public path
+    "/home/flashxy/JavaScriptProjects/awa-network/public/static"
 ]
 
 # use whitenoise for cachable files/compression support
