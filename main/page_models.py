@@ -40,12 +40,12 @@ class HomePage(BasePage):
         index.SearchField('spotlight_art'),
     ]
 
-    # # To show custom fields in the API results, the fields must be included in 
-    # # api_fields and then also included in the urlparams, as shown:
-    # # http://127.0.0.1:8000/api/v2/pages/?type=blog.BlogPage&fields=intro,body
-    # api_fields = [
-    #     APIField('body')
-    # ]
+    # To show custom fields in the API results, the fields must be included in 
+    # api_fields and then also included in the urlparams, as shown:
+    # http://localhost:8000/api/v2/pages/?type=main.HomePage&fields=intro,body
+    api_fields = [
+        APIField('sliding_images')
+    ]
 
     # search_fields = Page.search_fields + [
     #     index.SearchField('body')
@@ -93,4 +93,12 @@ class MagazinePage(BasePage):
 class FoundationPage(BasePage):
     parent_page_types = ['main.HomePage']
     max_count = 1
+
+
+class AnimationChallengePage(BasePage):
+    parent_page_types = ['main.ChallengePage']
+
+
+class ConceptChallengePage(BasePage):
+    parent_page_types = ['main.ChallengePage']
     
