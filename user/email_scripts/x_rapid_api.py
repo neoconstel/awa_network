@@ -38,7 +38,6 @@ def send_email(subject, message, sender, *recipients):
 	else:
 		print(response.text)
 		print(f"SENT EMAIL to {recipients}")
-		print(f"MESSAGE: {message}")
 
 
 if __name__ == '__main__':

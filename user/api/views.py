@@ -28,7 +28,7 @@ encryption_handler = Fernet(encryption_key)
 
 # others
 import json
-from user.email_sender import send_email
+from user.email_scripts.emailjs import send_email
 from datetime import datetime, timedelta
 from django.contrib.auth import login
 
@@ -80,7 +80,6 @@ class Register(APIView):
                 Click this link to activate your awa-network account:
                 {VERIFY_REDIRECT_URL}/?xtoken={encrypted_access_token.decode()}/
                 ''',
-                'no-reply@animationwestafrica.com',
                 new_user.email
             )
 
@@ -271,7 +270,6 @@ class ForgotPassword(APIView):
                 Click this link to reset your AWA-Network password:
                 {RESET_REDIRECT_URL}/?xtoken={encrypted_access_token.decode()}/
                 ''',
-                'no-reply@animationwestafrica.com',
                 user_email
             )
             return Response(
