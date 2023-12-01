@@ -44,12 +44,31 @@ class HomePage(BasePage):
     # api_fields and then also included in the urlparams, as shown:
     # http://localhost:8000/api/v2/pages/?type=main.HomePage&fields=intro,body
     api_fields = [
-        APIField('sliding_images')
+        APIField('gallery_images'),
     ]
 
     # search_fields = Page.search_fields + [
     #     index.SearchField('body')
     # ]
+
+    # custom API field
+    @property
+    def gallery_images(self):
+
+        # in a normal page object, this would be 'self.homepage'
+        # but because this model inherited from 'basepage', so we have
+        # 'self.basepage.homepage' instead
+        gallery_image_list = self.basepage.homepage.sliding_images.all()
+
+        gallery_objects = []
+        for gallery_image in gallery_image_list:
+            gallery_object = {
+                'url': gallery_image.image.file.url,
+                'caption': gallery_image.caption
+            }
+            gallery_objects.append(gallery_object)
+
+        return gallery_objects
 
 
 class HomePageSlidingImage(Orderable):
