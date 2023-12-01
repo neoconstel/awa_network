@@ -17,9 +17,9 @@ class HomePageForm(WagtailAdminPageForm):
     '''
 
     # validate specific field (syntax: clean_<field name>)
-    # def clean_spotlight_art(self):
-    #     spotlight_art = self.cleaned_data['spotlight_art']
-    #     if spotlight_art < 1:
+    # def clean_spotlight_art_ID(self):
+    #     spotlight_art_ID = self.cleaned_data['spotlight_art_ID']
+    #     if spotlight_art_ID < 1:
     #         raise ValidationError('spotlight art ID must be >= 1!')
 
 
@@ -29,16 +29,16 @@ class HomePageForm(WagtailAdminPageForm):
         cleaned_data = super().clean()
 
         # extra custom validation logic
-        spotlight_art = cleaned_data['spotlight_art']
-        if spotlight_art != None:
-            if not isinstance(spotlight_art, int):
+        spotlight_art_ID = cleaned_data['spotlight_art_ID']
+        if spotlight_art_ID != None:
+            if not isinstance(spotlight_art_ID, int):
                 self.add_error(
-                    'spotlight_art', 'spotlight_art must be a valid integer!')
+                    'spotlight_art_ID', 'spotlight_art_ID must be a valid integer!')
 
             else:
-                if not Artwork.objects.filter(id=spotlight_art).first():
-                    self.add_error('spotlight_art', f"The ID:\
-                            {spotlight_art} doesn't belong to any artwork!")
+                if not Artwork.objects.filter(id=spotlight_art_ID).first():
+                    self.add_error('spotlight_art_ID', f"The ID:\
+                            {spotlight_art_ID} doesn't belong to any artwork!")
 
         return cleaned_data
 

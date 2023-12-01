@@ -20,6 +20,11 @@ class BasePage(Page):
 
 
 class HomePage(BasePage):
+    '''
+    custom API fields:
+    - gallery_images
+    - spotlight_art
+    '''
     parent_page_types = ['wagtailcore.Page']
 
     # custom form to be used when creating/editing page in admin
@@ -28,16 +33,16 @@ class HomePage(BasePage):
     # body = models.TextField(help_text='blablabla', blank=True)
 
     # this should be validated on page publish to ensure valid artwork id
-    spotlight_art = models.IntegerField(
+    spotlight_art_ID = models.IntegerField(
         help_text='ID of the Spotlight Art', blank=True, null=True)
 
     content_panels = Page.content_panels + [
-        FieldPanel('spotlight_art'),
+        FieldPanel('spotlight_art_ID'),
         InlinePanel('sliding_images', label="Sliding images"),
     ]
 
     search_fields = Page.search_fields + [
-        index.SearchField('spotlight_art'),
+        index.SearchField('spotlight_art_ID'),
     ]
 
     # To show custom fields in the API results, the fields must be included in 
@@ -45,6 +50,7 @@ class HomePage(BasePage):
     # http://localhost:8000/api/v2/pages/?type=main.HomePage&fields=intro,body
     api_fields = [
         APIField('gallery_images'),
+        APIField('spotlight_art'),
     ]
 
     # search_fields = Page.search_fields + [
@@ -69,6 +75,17 @@ class HomePage(BasePage):
             gallery_objects.append(gallery_object)
 
         return gallery_objects
+
+
+    @property
+    def spotlight_art(self):
+        id = self.basepage.homepage.spotlight_art_ID
+        url = Artwork.objects.get(id=id).image_object.first().resource.url
+        artwork = {
+            'id': id,
+            'image_url': url
+        }
+        return artwork
 
 
 class HomePageSlidingImage(Orderable):
