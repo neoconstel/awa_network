@@ -10,7 +10,7 @@ new_following = django.dispatch.Signal()
 from django.dispatch import receiver
 
 # models
-from .models import User, Artist, Artwork, File
+from .models import User, Artist, Artwork, File, Image
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -64,3 +64,14 @@ def file_listener(sender, **kwargs):
     model_instance.resource.delete()
 
     # print(f'\n\n\nEXECUTED SIGNAL:  file and attached resource deleted\n\n\n')
+
+
+# -------Image-------
+@receiver(pre_delete, sender=Image, dispatch_uid='image-uid')
+def image_listener(sender, **kwargs):
+    model_instance = kwargs.get('instance')
+    
+    # delete the resource it points to
+    model_instance.resource.delete()
+
+    # print(f'\n\n\nEXECUTED SIGNAL:  image and attached resource deleted\n\n\n')
