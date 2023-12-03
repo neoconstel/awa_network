@@ -34,8 +34,8 @@ IsArtworkAuthorElseReadOnly,IsArtistUserElseReadOnly)
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from user.api.views import get_jwt_access_tokens_for_user
 
-# Static/Media
-from django.core.files.storage import FileSystemStorage
+# File handling
+from django.core.files import File as DjangoFile
 
 # pagination
 from .pagination import ArtworkPaginationConfig, ArtistPaginationConfig
@@ -64,16 +64,17 @@ class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
         serializer = ArtworkSerializer(data=data)
 
         if serializer.is_valid():
-            # create a post instance using the POST data
-            data['category'] = ArtCategory.objects.get(id=data['category'])
+            try: 
+                data['category'] = ArtCategory.objects.get(id=data['category'])            
+                
+                # the uploaded file must be wrapped into a file object
+                wrapped_request_file = DjangoFile(request.FILES['file'])
 
-            from django.core.files import File as DjangoFile
-            
-            # the uploaded file must be wrapped into a file object
-            wrapped_request_file = DjangoFile(request.FILES['file'])
-
-            file_type = FileType.objects.get(name=data['file_type'])
-            file_group = FileGroup.objects.get(name='artworks')
+                file_type = FileType.objects.get(name=data['file_type'])
+                file_group = FileGroup.objects.get(name='artworks')
+            except Exception as e:
+                return Response({'error': 'make sure to select a file!'},
+                 status=status.HTTP_400_BAD_REQUEST)
 
             # create (Image or File) FieldFile instance using the file object
             if file_type.name == 'image':

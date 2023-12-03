@@ -62,6 +62,10 @@ class Register(APIView):
         if serializer.is_valid():
             new_user = serializer.save()
 
+            # TEMPORARY CODE TILL EMAIL SENDING FEATURE WORKS FOR VERIFICATION
+            new_user.is_active = True
+            new_user.save()
+
             # generate jwt access tokens for the new user
             tokens = get_jwt_access_tokens_for_user(new_user)
 
