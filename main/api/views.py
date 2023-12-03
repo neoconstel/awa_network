@@ -10,7 +10,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 
 # serializers
-from .serializers import ArtworkSerializer, ArtistSerializer
+from .serializers import (
+    ArtworkSerializer, ArtistSerializer, ArtCategorySerializer)
 
 # response / status
 from rest_framework.response import Response
@@ -194,3 +195,19 @@ class ArtistDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
+
+class ArtCategoryList(mixins.ListModelMixin, mixins.CreateModelMixin,
+                                                generics.GenericAPIView):
+
+    permission_classes = []
+    # pagination_class = 
+    ordering = 'id'
+
+    serializer_class = ArtCategorySerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return ArtCategory.objects.order_by(ArtCategoryList.ordering).all()
+        

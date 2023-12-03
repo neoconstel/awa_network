@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from main.models import Artwork, Artist
+from main.models import Artwork, Artist, ArtCategory
 from django.conf import settings
 
 from user.api.serializers import UserReadOnlySerializer
@@ -84,3 +84,13 @@ class ArtworkSerializer(serializers.ModelSerializer):
 
         
         return data
+
+
+class ArtCategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ArtCategory
+        fields = '__all__'
+        extra_kwargs = {
+            
+        }
