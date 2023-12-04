@@ -192,14 +192,14 @@ class UserInfo(APIView):
     def get(self, request):
 
         user = request.user
-        login_status = 'authenticated' if request.user else 'anonymous'
-        data = {
-            'username': user.username,
-            'userID': user.id,
-            'status': login_status
-        }
+        
+        if user:
+            data = {
+                'user': UserReadOnlySerializer(user).data
+            }
 
-        return Response(data, status=status.HTTP_200_OK)
+            return Response(data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class VerifyEmail(APIView):
