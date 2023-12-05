@@ -34,7 +34,7 @@ class HomePage(BasePage):
 
     # this should be validated on page publish to ensure valid artwork id
     spotlight_art_ID = models.IntegerField(
-        help_text='ID of the Spotlight Art', blank=True, null=True)
+        help_text='ID of the Spotlight Art (you can find it in its url)', blank=True, null=True)
 
     content_panels = Page.content_panels + [
         FieldPanel('spotlight_art_ID'),
