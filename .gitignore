@@ -90,8 +90,13 @@ media/
 db.sqlite3
 venv
 backup
-staticfiles
 .demo_model*
+staticfiles
+/static/assets
+/static/icons
+
+
+
 
 
 
