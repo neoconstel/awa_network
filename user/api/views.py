@@ -162,6 +162,11 @@ class Login(APIView):
 
 
 class Logout(APIView):
+
+    # exempt this view from requiring authentication/permissions
+    permission_classes = []
+    authentication_classes = []
+    
     def post(self, request):
         data = {
                 'status': 'logged out'
