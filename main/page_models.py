@@ -32,12 +32,15 @@ class HomePage(BasePage):
 
     # body = models.TextField(help_text='blablabla', blank=True)
 
+    spotlight_art_caption = models.CharField(max_length=100, blank=True, null=True)
+
     # this should be validated on page publish to ensure valid artwork id
     spotlight_art_ID = models.IntegerField(
         help_text='ID of the Spotlight Art (you can find it in its url)', blank=True, null=True)
 
     content_panels = Page.content_panels + [
         FieldPanel('spotlight_art_ID'),
+        FieldPanel('spotlight_art_caption'),
         InlinePanel('sliding_images', label="Sliding images"),
     ]
 
@@ -51,6 +54,7 @@ class HomePage(BasePage):
     api_fields = [
         APIField('gallery_images'),
         APIField('spotlight_art'),
+        APIField('spotlight_caption'),
     ]
 
     # search_fields = Page.search_fields + [
@@ -86,6 +90,11 @@ class HomePage(BasePage):
             'image_url': url
         }
         return artwork
+
+    
+    @property
+    def spotlight_caption(self):
+        return self.basepage.homepage.spotlight_art_caption
 
 
 class HomePageSlidingImage(Orderable):
