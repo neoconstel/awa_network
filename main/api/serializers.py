@@ -9,6 +9,7 @@ from user.api.serializers import UserReadOnlySerializer
 class ArtistSerializer(serializers.ModelSerializer):
 
     # nested field: nest user serializer into this (read-only by default)
+    # -------different ways of implementation---------
     user = UserReadOnlySerializer(many=False, read_only=True)
 
     # show only specified slugfield (read-write by default but needs queryset)
@@ -20,6 +21,18 @@ class ArtistSerializer(serializers.ModelSerializer):
 
     # show only the __str__ field (read-only)
     # user = serializers.StringRelatedField(many=False)
+    #-------------------------------------------------------------
+
+    # custom serializer fields
+    followers = serializers.SerializerMethodField()
+    following = serializers.SerializerMethodField()
+
+    # methods to get the custom fields (syntax: get_<custom serializer field>)
+    def get_followers(self, object):
+        return object.followers.count()
+
+    def get_following(self, object):
+        return object.following.count()
 
     class Meta:
         model = Artist
