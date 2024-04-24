@@ -251,6 +251,30 @@ class FollowingList(mixins.ListModelMixin, mixins.CreateModelMixin,
         return Following.objects.all()
 
 
+class FollowingStatus(APIView):
+
+    # permission_classes = [set following permission here]
+
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+        other_user = User.objects.get(username=kwargs.get('other_user'))
+
+        if user and other_user:
+            user_follows_other = bool(Following.objects.filter(
+                follower=user.artist, following=other_user.artist).first())
+            other_follows_user = bool(Following.objects.filter(
+                follower=other_user.artist, following=user.artist).first())
+            return Response({
+                "user_follows_other": user_follows_other,
+                "other_follows_user": other_follows_user
+            }, status=status.HTTP_200_OK)
+            
+        return Response(
+                    {"error": "invalid other_user"},
+                    status=status.HTTP_400_BAD_REQUEST)
+                
+
+
 class Unfollow(APIView):
 
     # permission_classes = [set following permission here]

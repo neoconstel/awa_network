@@ -16,5 +16,6 @@ urlpatterns = [
     path('followings/', views.FollowingList.as_view(), name='following_list'),
     path('following/follow/<str:other_user>/', views.FollowingList.as_view(), name='follow'),
     path('following/unfollow/<str:other_user>/', views.Unfollow.as_view(), name='unfollow'),
+    path('following/status/<str:other_user>/', views.FollowingStatus.as_view(), name='following_status'),
     
 ]
