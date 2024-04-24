@@ -12,5 +12,8 @@ urlpatterns = [
     path('artist/<str:username>/', views.ArtistDetail.as_view(), name='artist_detail'),
 
     path('art-categories/', views.ArtCategoryList.as_view(), name='art_category_list'),
+
+    path('followings/', views.FollowingList.as_view(), name='following_list'),
+    path('followings/<str:other_user>/', views.FollowingList.as_view(), name='following_list'),
     
 ]

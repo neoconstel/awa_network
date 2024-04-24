@@ -4,14 +4,15 @@ from django.conf import settings
 
 # models
 from main.models import (
-    Artist, Artwork, File, FileType, FileGroup, ArtCategory, Image)
+    Artist, Artwork, File, FileType, FileGroup, ArtCategory, Image, Following)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 
 # serializers
 from .serializers import (
-    ArtworkSerializer, ArtistSerializer, ArtCategorySerializer)
+    ArtworkSerializer, ArtistSerializer, ArtCategorySerializer,
+    FollowingSerializer)
 
 # response / status
 from rest_framework.response import Response
@@ -211,4 +212,58 @@ class ArtCategoryList(mixins.ListModelMixin, mixins.CreateModelMixin,
 
     def get_queryset(self):
         return ArtCategory.objects.order_by(ArtCategoryList.ordering).all()
+
+
+# class Follow(APIView):
+
+#     def post(self, request, *args, **kwargs):
+#         user = self.request.user
+#         other_user = User.objects.get(username=kwargs.get('other_user'))
+
+#         if user and other_user:
+#             following_instance = Following.objects.create(
+#                 follower=user.artist, following=other_user.artist)
+
+#             print("this is what following_instance looks like")
+#             print(following_instance)
+
+#             serializer = FollowingSerializer(following_instance)
+#             return Response(serializer.data,
+#                 status=status.HTTP_200_OK)
         
+#         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class FollowingList(mixins.ListModelMixin, mixins.CreateModelMixin,
+                                                generics.GenericAPIView):
+
+    ordering = '-id'
+
+    serializer_class = FollowingSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+
+        user = self.request.user
+        other_user = User.objects.get(username=kwargs.get('other_user'))
+
+        if user and other_user:
+            if Following.objects.filter(
+                follower=user.artist, following=other_user.artist).first():
+                return Response(
+                    {"status": "already followed"},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+            following_instance = Following.objects.create(
+                follower=user.artist, following=other_user.artist)
+
+            serializer = FollowingSerializer(following_instance)        
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    def get_queryset(self):
+        return Following.objects.all()
