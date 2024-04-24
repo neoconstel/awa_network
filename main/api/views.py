@@ -214,28 +214,10 @@ class ArtCategoryList(mixins.ListModelMixin, mixins.CreateModelMixin,
         return ArtCategory.objects.order_by(ArtCategoryList.ordering).all()
 
 
-# class Follow(APIView):
-
-#     def post(self, request, *args, **kwargs):
-#         user = self.request.user
-#         other_user = User.objects.get(username=kwargs.get('other_user'))
-
-#         if user and other_user:
-#             following_instance = Following.objects.create(
-#                 follower=user.artist, following=other_user.artist)
-
-#             print("this is what following_instance looks like")
-#             print(following_instance)
-
-#             serializer = FollowingSerializer(following_instance)
-#             return Response(serializer.data,
-#                 status=status.HTTP_200_OK)
-        
-#         return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
 class FollowingList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                                 generics.GenericAPIView):
+
+    # permission_classes = [set following permission here]
 
     ordering = '-id'
 
@@ -267,3 +249,31 @@ class FollowingList(mixins.ListModelMixin, mixins.CreateModelMixin,
 
     def get_queryset(self):
         return Following.objects.all()
+
+
+class Unfollow(APIView):
+
+    # permission_classes = [set following permission here]
+
+    def post(self, request, *args, **kwargs):
+        user = self.request.user
+        other_user = User.objects.get(username=kwargs.get('other_user'))
+
+        if user and other_user:
+            following_instance = Following.objects.filter(
+                follower=user.artist, following=other_user.artist).first()
+            if following_instance:
+                following_instance.delete()
+                return Response(
+                    {"status": "unfollowed"},
+                    status=status.HTTP_200_OK)
+
+            else:
+                return Response(
+                    {"status": "not following"},
+                    status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(
+                    {"error": "invalid other_user"},
+                    status=status.HTTP_400_BAD_REQUEST)
+                    

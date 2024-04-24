@@ -14,6 +14,7 @@ urlpatterns = [
     path('art-categories/', views.ArtCategoryList.as_view(), name='art_category_list'),
 
     path('followings/', views.FollowingList.as_view(), name='following_list'),
-    path('followings/<str:other_user>/', views.FollowingList.as_view(), name='following_list'),
+    path('following/follow/<str:other_user>/', views.FollowingList.as_view(), name='follow'),
+    path('following/unfollow/<str:other_user>/', views.Unfollow.as_view(), name='unfollow'),
     
 ]
