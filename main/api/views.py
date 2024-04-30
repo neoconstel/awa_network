@@ -39,7 +39,8 @@ from user.api.views import get_jwt_access_tokens_for_user
 from django.core.files import File as DjangoFile
 
 # pagination
-from .pagination import ArtworkPaginationConfig, ArtistPaginationConfig
+from .pagination import (ArtworkPaginationConfig, ArtistPaginationConfig,
+FollowPaginationConfig)
 
 
 class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -218,6 +219,7 @@ class FollowingList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                                 generics.GenericAPIView):
 
     # permission_classes = [set following permission here]
+    pagination_class = FollowPaginationConfig
 
     ordering = '-id'
 
