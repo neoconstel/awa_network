@@ -18,6 +18,10 @@ class Artist(models.Model):
         User, on_delete=models.CASCADE, related_name='artist')
     views = models.IntegerField(default=0)
     likes = models.IntegerField(default=0)
+    bio = models.CharField(max_length=100, blank=True, null=True)
+    tools = models.CharField(max_length=100, blank=True, null=True)
+    location = models.CharField(max_length=50, blank=True, null=True)
+    website = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
         return f"Artist{self.id} | {self.user.username}"
