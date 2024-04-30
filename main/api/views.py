@@ -248,7 +248,34 @@ class FollowingList(mixins.ListModelMixin, mixins.CreateModelMixin,
 
 
     def get_queryset(self):
-        return Following.objects.all()
+        # get the search term submitted with GET
+        username = self.request.GET.get('username')
+        filter = self.request.GET.get('filter')
+
+        artist = Artist.objects.filter(user__username=username).first()
+
+        if username:
+            if artist:
+                if filter == 'followers':
+                    filtered_query = Following.objects.filter(following=artist).all()
+                elif filter == 'following':
+                    filtered_query = Following.objects.filter(follower=artist).all()
+
+                # any following instance involving this artist
+                elif filter == 'any-follow':
+                    filtered_query = Following.objects.filter(
+                        Q(follower=artist)
+                        |Q(following=artist)).all()
+                else:
+                    raise ValueError("Invalid filter option")
+
+                return filtered_query.order_by(FollowingList.ordering)
+
+            else:
+                raise ValueError("No such artist found")
+        else:
+            # return this query if search field is empty (e.g on page load)
+            return Following.objects.order_by(FollowingList.ordering).all()
 
 
 class FollowingStatus(APIView):
