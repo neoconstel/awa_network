@@ -111,6 +111,18 @@ class ArtCategorySerializer(serializers.ModelSerializer):
 
 class FollowingSerializer(serializers.ModelSerializer):
 
+    # override the follower and following fields with custom field
+    # by default, they display the id of the artist. The goal here is to
+    # replace them with the username instead
+    follower = serializers.SerializerMethodField(source='follower')
+    following = serializers.SerializerMethodField(source='following')
+
+    def get_follower(self, object):
+        return object.follower.user.username
+
+    def get_following(self, object):
+        return object.following.user.username
+
     class Meta:
         model = Following
         fields = '__all__'
