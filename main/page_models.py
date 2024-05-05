@@ -26,6 +26,7 @@ class HomePage(BasePage):
     - spotlight_art
     '''
     parent_page_types = ['wagtailcore.Page']
+    max_count = 1
 
     # custom form to be used when creating/editing page in admin
     base_form_class = HomePageForm
@@ -140,10 +141,39 @@ class FoundationPage(BasePage):
     max_count = 1
 
 
+class PortfolioPage(BasePage):
+    parent_page_types = ['main.HomePage']
+    max_count = 1
+
+    blank_art_placeholder = models.ForeignKey(
+        'wagtailimages.Image', null=True, blank=True,
+         on_delete=models.SET_NULL, related_name='+'
+    )
+
+    content_panels = Page.content_panels + [
+        FieldPanel('blank_art_placeholder'),
+    ]
+
+    # http://localhost:8000/api/v2/pages/?type=main.PortfolioPage&fields=art_placeholder
+    api_fields = [
+        APIField('art_placeholder')
+    ]
+
+
+    @property
+    def art_placeholder(self):
+        image = self.basepage.portfoliopage.blank_art_placeholder
+        return {
+            'caption': image.title,
+            'image_url': image.file.url
+        }
+
+
+
 class AnimationChallengePage(BasePage):
     parent_page_types = ['main.ChallengePage']
 
 
 class ConceptChallengePage(BasePage):
     parent_page_types = ['main.ChallengePage']
-    
+
