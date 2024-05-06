@@ -146,7 +146,7 @@ class PortfolioPage(BasePage):
     max_count = 1
 
     blank_art_placeholder = models.ForeignKey(
-        'wagtailimages.Image', null=True, blank=True,
+        'wagtailimages.Image', null=True, blank=False,
          on_delete=models.SET_NULL, related_name='+'
     )
 
