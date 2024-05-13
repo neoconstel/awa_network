@@ -29,7 +29,7 @@ from rest_framework import mixins
 from django.contrib.auth import authenticate, login
 
 # permissions
-from .permissions import (IsAuthenticatedElseReadOnly,
+from .permissions import (IsAuthenticated, IsAuthenticatedElseReadOnly,
 IsArtworkAuthorElseReadOnly,IsArtistUserElseReadOnly)
 
 # jwt authentication
@@ -340,7 +340,7 @@ class ReactList(APIView):
     def get(self, request, model:str, instance_id:int):
 
         content_type = ContentType.objects.get(model=model.lower())
-        object_reacted_on = content_type.get_object_for_this_type(id=instance_id)
+        # object_reacted_on = content_type.get_object_for_this_type(id=instance_id)
 
         reactions = Reaction.objects.filter(content_type=content_type, 
                         object_id=instance_id).all()
@@ -353,3 +353,46 @@ class ReactList(APIView):
             "reactions": serializer.data
         }
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+class React(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, reaction_type:str, model:str, instance_id:int):
+
+        content_type = ContentType.objects.get(model=model.lower())
+        object_reacted_on = content_type.get_object_for_this_type(id=instance_id)
+
+        user = self.request.user
+        reaction_type_instance = ReactionType.objects.get(name=reaction_type)
+        is_duplicate_reaction = Reaction.objects.filter(
+            content_type=content_type, object_id=instance_id, 
+            user=user, reaction_type=reaction_type_instance).first()
+        if is_duplicate_reaction:
+            return Response(
+                {reaction_type: f"already reacted by current user on this {model}"},
+                             status=status.HTTP_417_EXPECTATION_FAILED)
+
+        # Create a new Reaction object for a specific object (artwork, post etc)
+        reaction = Reaction(
+        content_type=content_type,
+        object_id=object_reacted_on.id,
+        content_object=object_reacted_on,
+        user=user,
+        reaction_type=reaction_type_instance
+        )
+        reaction.save()
+
+
+        response_data = {
+            "reaction": reaction_type,
+            "model": model,
+            "instance_id": instance_id,
+            "user": self.request.user.username
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
+
+        # return Response({'test':'OK', 'instance_id': instance_id}, status=status.HTTP_200_OK)
