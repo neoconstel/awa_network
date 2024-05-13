@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from main.models import Artwork, Artist, ArtCategory, Following
+from main.models import Artwork, Artist, ArtCategory, Following, Reaction
 from django.conf import settings
 
 from user.api.serializers import UserReadOnlySerializer
@@ -122,3 +122,21 @@ class FollowingSerializer(serializers.ModelSerializer):
             
         }
         
+
+class ReactionSerializer(serializers.ModelSerializer):
+
+    user = serializers.SerializerMethodField()
+    reaction_type = serializers.SerializerMethodField()
+
+    def get_user(self,object):
+        return object.user.username
+
+    def get_reaction_type(self,object):
+        return object.reaction_type.name
+
+    class Meta:
+        model = Reaction
+        fields = ['reaction_type', 'user']
+        extra_kwargs = {
+            'user': {'read_only': True}
+        }

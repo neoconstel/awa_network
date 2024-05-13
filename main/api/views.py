@@ -4,7 +4,8 @@ from django.conf import settings
 
 # models
 from main.models import (
-    Artist, Artwork, File, FileType, FileGroup, ArtCategory, Image, Following)
+    Artist, Artwork, File, FileType, FileGroup, ArtCategory, Image, Following,
+    ReactionType, Reaction)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -12,7 +13,7 @@ from django.db.models import Q
 # serializers
 from .serializers import (
     ArtworkSerializer, ArtistSerializer, ArtCategorySerializer,
-    FollowingSerializer)
+    FollowingSerializer, ReactionSerializer)
 
 # response / status
 from rest_framework.response import Response
@@ -330,3 +331,25 @@ class Unfollow(APIView):
                     {"error": "invalid other_user"},
                     status=status.HTTP_400_BAD_REQUEST)
                     
+
+class ReactList(APIView):
+
+    # no permissions required for this view
+    permission_classes = []
+
+    def get(self, request, model:str, instance_id:int):
+
+        content_type = ContentType.objects.get(model=model.lower())
+        object_reacted_on = content_type.get_object_for_this_type(id=instance_id)
+
+        reactions = Reaction.objects.filter(content_type=content_type, 
+                        object_id=instance_id).all()
+
+        serializer = ReactionSerializer(reactions, many=True)
+
+        response_data = {
+            "model": model,
+            "instance_id": instance_id,
+            "reactions": serializer.data
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
