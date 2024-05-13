@@ -346,8 +346,22 @@ class ReactList(mixins.ListModelMixin, generics.GenericAPIView):
         response = self.list(request, *args, **kwargs)
         response.data['model'] = model
         response.data['instance_id'] = instance_id
+        response.data['user_reactions'] = []
+
+        content_type = ContentType.objects.get(model=model.lower())
+
+        if self.request.user.is_authenticated:
+            reactions_by_user = Reaction.objects.filter(content_type=content_type, 
+                            object_id=instance_id, user=request.user).order_by(
+                                self.__class__.ordering).all()
+            user_reactions_serialized = ReactionSerializer(reactions_by_user, many=True)
+
+            user_reaction_names = [
+                reaction['reaction_type'] for reaction in user_reactions_serialized.data]
+            response.data['user_reactions'] = user_reaction_names
 
         # order the display of results in the json output (not too necessary)
+        response.data.move_to_end('user_reactions', last=False)
         response.data.move_to_end('instance_id', last=False)
         response.data.move_to_end('model', last=False)
         response.data.move_to_end('previous', last=False)
@@ -366,8 +380,11 @@ class ReactList(mixins.ListModelMixin, generics.GenericAPIView):
         # object_reacted_on = content_type.get_object_for_this_type(id=instance_id)
 
         reactions = Reaction.objects.filter(content_type=content_type, 
-                        object_id=instance_id).order_by(
-                            self.__class__.ordering).all()
+                        object_id=instance_id)
+        # if self.request.user.is_authenticated:
+        #     reactions = reactions.exclude(user=self.request.user)
+        reactions = reactions.order_by(self.__class__.ordering).all()
+
         return reactions
 
 
