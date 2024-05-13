@@ -347,6 +347,13 @@ class ReactList(mixins.ListModelMixin, generics.GenericAPIView):
         response.data['model'] = model
         response.data['instance_id'] = instance_id
 
+        # order the display of results in the json output (not too necessary)
+        response.data.move_to_end('instance_id', last=False)
+        response.data.move_to_end('model', last=False)
+        response.data.move_to_end('previous', last=False)
+        response.data.move_to_end('next', last=False)
+        response.data.move_to_end('count', last=False)
+
         return response
 
 
