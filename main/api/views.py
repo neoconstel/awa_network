@@ -337,13 +337,16 @@ class ReactList(APIView):
     # no permissions required for this view
     permission_classes = []
 
+    ordering = '-id'
+
     def get(self, request, model:str, instance_id:int):
 
         content_type = ContentType.objects.get(model=model.lower())
         # object_reacted_on = content_type.get_object_for_this_type(id=instance_id)
 
         reactions = Reaction.objects.filter(content_type=content_type, 
-                        object_id=instance_id).all()
+                        object_id=instance_id).order_by(
+                            self.__class__.ordering).all()
 
         serializer = ReactionSerializer(reactions, many=True)
 
@@ -399,25 +402,28 @@ class UnReact(APIView):
     # permission_classes: permission is tied to the logic for this view. Only 
     # user who reacted on an object can remove the reaction.
 
-    def post(self, request, reaction_type:str, model:str, instance_id:int):
+    def post(self, request, reaction_type_name:str, model:str, instance_id:int):
 
         content_type = ContentType.objects.get(model=model.lower())        
         object_reacted_on = content_type.get_object_for_this_type(id=instance_id)
 
+        reaction_type = ReactionType.objects.get(name=reaction_type_name)
+
         try:
             reaction = Reaction.objects.get(content_type=content_type,
-                                            object_id=object_reacted_on.pk, 
-                                            emoji=emoji, user=self.request.user)
+                                            object_id=object_reacted_on.pk,
+                                            user=self.request.user,
+                                            reaction_type=reaction_type)
 
         except Reaction.DoesNotExist:
             return Response(
-                {"error": f"no '{emoji}' reaction from current user on this {model}"},
+                {"error": f"no '{reaction_type_name}' reaction from current user on this {model}"},
                                 status=status.HTTP_404_NOT_FOUND)
 
         else:
             reaction.delete()        
 
         response_data = {
-            "removed reaction": emoji
+            "removed reaction": reaction_type_name
         }
         return Response(response_data, status=status.HTTP_200_OK)
