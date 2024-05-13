@@ -136,10 +136,10 @@ class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
             elif filter == 'tags':
                 filtered_query = Artwork.objects.filter(
                                 tags__icontains=search_term).all()
-            return filtered_query.order_by(ArtworkList.ordering)
+            return filtered_query.order_by(self.__class__.ordering)
         else:
             # return this query if search field is empty (e.g on page load)
-            return Artwork.objects.order_by(ArtworkList.ordering).all()
+            return Artwork.objects.order_by(self.__class__.ordering).all()
 
      
 class ArtworkDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
@@ -173,7 +173,7 @@ class ArtistList(mixins.ListModelMixin, mixins.CreateModelMixin,
         return self.list(request, *args, **kwargs)
 
     def get_queryset(self):
-        return Artist.objects.order_by(ArtistList.ordering).all()
+        return Artist.objects.order_by(self.__class__.ordering).all()
 
 
 class ArtistDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
@@ -213,7 +213,7 @@ class ArtCategoryList(mixins.ListModelMixin, mixins.CreateModelMixin,
         return self.list(request, *args, **kwargs)
 
     def get_queryset(self):
-        return ArtCategory.objects.order_by(ArtCategoryList.ordering).all()
+        return ArtCategory.objects.order_by(self.__class__.ordering).all()
 
 
 class FollowingList(mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -272,13 +272,13 @@ class FollowingList(mixins.ListModelMixin, mixins.CreateModelMixin,
                 else:
                     raise ValueError("Invalid filter option")
 
-                return filtered_query.order_by(FollowingList.ordering)
+                return filtered_query.order_by(self.__class__.ordering)
 
             else:
                 raise ValueError("No such artist found")
         else:
             # return this query if search field is empty (e.g on page load)
-            return Following.objects.order_by(FollowingList.ordering).all()
+            return Following.objects.order_by(self.__class__.ordering).all()
 
 
 class FollowingStatus(APIView):
