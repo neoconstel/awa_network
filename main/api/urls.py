@@ -18,8 +18,8 @@ urlpatterns = [
     path('following/unfollow/<str:other_user>/', views.Unfollow.as_view(), name='unfollow'),
     path('following/status/<str:other_user>/', views.FollowingStatus.as_view(), name='following_status'),
 
-    path('react/add/<str:reaction_type>/<str:model>/<int:instance_id>/', views.React.as_view(), name='react'),
-    # path('react/remove/<str:reaction_type>/<str:model>/<int:instance_id>/', views.UnReact.as_view(), name='unreact'),
+    path('react/add/<str:reaction_type_name>/<str:model>/<int:instance_id>/', views.React.as_view(), name='react'),
+    path('react/remove/<str:reaction_type_name>/<str:model>/<int:instance_id>/', views.UnReact.as_view(), name='unreact'),
     path('react/list/<str:model>/<int:instance_id>/', views.ReactList.as_view(), name='react_list'),
     
 ]

@@ -359,19 +359,19 @@ class React(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, reaction_type:str, model:str, instance_id:int):
+    def post(self, request, reaction_type_name:str, model:str, instance_id:int):
 
         content_type = ContentType.objects.get(model=model.lower())
         object_reacted_on = content_type.get_object_for_this_type(id=instance_id)
 
         user = self.request.user
-        reaction_type_instance = ReactionType.objects.get(name=reaction_type)
+        reaction_type = ReactionType.objects.get(name=reaction_type_name)
         is_duplicate_reaction = Reaction.objects.filter(
             content_type=content_type, object_id=instance_id, 
-            user=user, reaction_type=reaction_type_instance).first()
+            user=user, reaction_type=reaction_type).first()
         if is_duplicate_reaction:
             return Response(
-                {reaction_type: f"already reacted by current user on this {model}"},
+                {reaction_type_name: f"already reacted by current user on this {model}"},
                              status=status.HTTP_417_EXPECTATION_FAILED)
 
         # Create a new Reaction object for a specific object (artwork, post etc)
@@ -380,13 +380,13 @@ class React(APIView):
         object_id=object_reacted_on.id,
         content_object=object_reacted_on,
         user=user,
-        reaction_type=reaction_type_instance
+        reaction_type=reaction_type
         )
         reaction.save()
 
 
         response_data = {
-            "reaction": reaction_type,
+            "reaction": reaction_type_name,
             "model": model,
             "instance_id": instance_id,
             "user": self.request.user.username
@@ -394,5 +394,30 @@ class React(APIView):
         return Response(response_data, status=status.HTTP_200_OK)
 
 
+class UnReact(APIView):
 
-        # return Response({'test':'OK', 'instance_id': instance_id}, status=status.HTTP_200_OK)
+    # permission_classes: permission is tied to the logic for this view. Only 
+    # user who reacted on an object can remove the reaction.
+
+    def post(self, request, reaction_type:str, model:str, instance_id:int):
+
+        content_type = ContentType.objects.get(model=model.lower())        
+        object_reacted_on = content_type.get_object_for_this_type(id=instance_id)
+
+        try:
+            reaction = Reaction.objects.get(content_type=content_type,
+                                            object_id=object_reacted_on.pk, 
+                                            emoji=emoji, user=self.request.user)
+
+        except Reaction.DoesNotExist:
+            return Response(
+                {"error": f"no '{emoji}' reaction from current user on this {model}"},
+                                status=status.HTTP_404_NOT_FOUND)
+
+        else:
+            reaction.delete()        
+
+        response_data = {
+            "removed reaction": emoji
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
