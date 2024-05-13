@@ -41,7 +41,7 @@ from django.core.files import File as DjangoFile
 
 # pagination
 from .pagination import (ArtworkPaginationConfig, ArtistPaginationConfig,
-FollowPaginationConfig)
+FollowPaginationConfig, ReactionPaginationConfig)
 
 
 class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -332,14 +332,28 @@ class Unfollow(APIView):
                     status=status.HTTP_400_BAD_REQUEST)
                     
 
-class ReactList(APIView):
+class ReactList(mixins.ListModelMixin, generics.GenericAPIView):
+    #lists reactions on an instance of a model (artwork, post, etc)
 
     # no permissions required for this view
     permission_classes = []
 
+    serializer_class = ReactionSerializer
+    pagination_class = ReactionPaginationConfig
     ordering = '-id'
 
-    def get(self, request, model:str, instance_id:int):
+    def get(self, request, model:str, instance_id:int, *args, **kwargs):        
+        response = self.list(request, *args, **kwargs)
+        response.data['model'] = model
+        response.data['instance_id'] = instance_id
+
+        return response
+
+
+    def get_queryset(self):
+
+        model = self.kwargs['model']
+        instance_id = self.kwargs['instance_id']
 
         content_type = ContentType.objects.get(model=model.lower())
         # object_reacted_on = content_type.get_object_for_this_type(id=instance_id)
@@ -347,15 +361,7 @@ class ReactList(APIView):
         reactions = Reaction.objects.filter(content_type=content_type, 
                         object_id=instance_id).order_by(
                             self.__class__.ordering).all()
-
-        serializer = ReactionSerializer(reactions, many=True)
-
-        response_data = {
-            "model": model,
-            "instance_id": instance_id,
-            "reactions": serializer.data
-        }
-        return Response(response_data, status=status.HTTP_200_OK)
+        return reactions
 
 
 class React(APIView):
