@@ -13,6 +13,37 @@ from django.contrib.contenttypes.fields import GenericRelation
 
 
 # Create your models here.
+class ReactionType(models.Model):
+    name = models.CharField(max_length=20)
+
+    def __str__(self):
+        return f"ReactionType{self.id}: {self.name}"
+
+
+class Reaction(models.Model):
+    reaction_type = models.ForeignKey(ReactionType, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    # generic relationship fields -- can react on post, comment, etc
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+
+    class Meta:
+        constraints = [
+            # no instance should have the same content_type, object_id, user
+            # and reaction_type
+            models.UniqueConstraint(
+                fields=['content_type', 'object_id', 'user', 'reaction_type'],
+                name='unique_reaction')
+        ]
+
+
+    def __str__(self):
+        return f"Reaction{self.id}: {self.reaction_type.name} | Object: {self.content_object} | User:{self.user.username}"
+
+
 class Artist(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='artist')
@@ -66,6 +97,9 @@ class Artwork(models.Model):
 
     # can be File or Image    
     content_object = GenericForeignKey('content_type', 'object_id')
+
+    # generic related fields for reverse quering
+    reaction = GenericRelation(Reaction, related_query_name='artwork_object')
 
     class Meta:
         constraints = [
@@ -142,37 +176,6 @@ class Following(models.Model):
 
     def __str__(self):
         return f"Following{self.id}: {self.follower} -> {self.following}"
-
-
-class ReactionType(models.Model):
-    name = models.CharField(max_length=20)
-
-    def __str__(self):
-        return f"ReactionType{self.id}: {self.name}"
-
-
-class Reaction(models.Model):
-    reaction_type = models.ForeignKey(ReactionType, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    # generic relationship fields -- can react on post, comment, etc
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
-
-
-    class Meta:
-        constraints = [
-            # no instance should have the same content_type, object_id, user
-            # and reaction_type
-            models.UniqueConstraint(
-                fields=['content_type', 'object_id', 'user', 'reaction_type'],
-                name='unique_reaction')
-        ]
-
-
-    def __str__(self):
-        return f"Reaction{self.id}: {self.reaction_type.name} | Object: {self.content_object} | User:{self.user.username}"
 
 
 # execute this part only from models.py in the 'main' app

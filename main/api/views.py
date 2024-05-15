@@ -114,32 +114,38 @@ class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
         search_term = self.request.GET.get('search')
         filter = self.request.GET.get('filter')
 
+        filtered_query = Artwork.objects
+
+        # filter based on those liked (or reacted on) by user
+        liked_by_user:str = self.request.GET.get('liked_by_user')
+        if liked_by_user == 'true' and self.request.user.is_authenticated:
+            filtered_query = filtered_query.filter(
+                reaction__user=self.request.user)
+
         if search_term:
             # filter example format: <model field>__icontains=<search term>
             if filter == 'title':
-                filtered_query = Artwork.objects.filter(
-                                title__icontains=search_term).all()
+                filtered_query = filtered_query.filter(
+                                title__icontains=search_term)
             elif filter == 'category':
-                filtered_query = Artwork.objects.filter(
-                                category__name__icontains=search_term).all()
+                filtered_query = filtered_query.filter(
+                                category__name__icontains=search_term)
             elif filter == 'artist':
-                filtered_query = Artwork.objects.filter(
-                        artist__user__username__iexact=search_term).all()
+                filtered_query = filtered_query.filter(
+                        artist__user__username__iexact=search_term)
             elif filter == 'username':
-                filtered_query = Artwork.objects.filter(
-                        artist__user__username__istartswith=search_term).all()
+                filtered_query = filtered_query.filter(
+                        artist__user__username__istartswith=search_term)
             elif filter == 'name':
-                filtered_query = Artwork.objects.filter(
+                filtered_query = filtered_query.filter(
                         Q(artist__user__first_name__in=search_term)
                         | Q(artist__user__last_name__in=search_term)
-                        ).all()
+                        )
             elif filter == 'tags':
-                filtered_query = Artwork.objects.filter(
-                                tags__icontains=search_term).all()
-            return filtered_query.order_by(self.__class__.ordering)
-        else:
-            # return this query if search field is empty (e.g on page load)
-            return Artwork.objects.order_by(self.__class__.ordering).all()
+                filtered_query = filtered_query.filter(
+                                tags__icontains=search_term)
+
+        return filtered_query.order_by(self.__class__.ordering).all()
 
      
 class ArtworkDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
