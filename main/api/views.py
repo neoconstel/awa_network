@@ -5,7 +5,7 @@ from django.conf import settings
 # models
 from main.models import (
     Artist, Artwork, File, FileType, FileGroup, ArtCategory, Image, Following,
-    ReactionType, Reaction)
+    ReactionType, Reaction, ViewLog)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -126,7 +126,7 @@ class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
             some_user = User.objects.filter(username=liked_by).first()
             if some_user:
                 artworks_query = artworks_query.filter(
-                    reaction__user=some_user)
+                    reactions__user=some_user)
             else:
                 return Artwork.objects.none()
 
@@ -165,6 +165,33 @@ class ArtworkDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
     serializer_class = ArtworkSerializer
 
     def get(self, request, *args, **kwargs):
+        # update record of number of views on this artwork
+        # TODO: do not log this view if view is artwork owner
+        if request.user.is_authenticated:
+            artwork = Artwork.objects.filter(id=kwargs['pk']).first()
+            if artwork:
+                artwork_type = ContentType.objects.get_for_model(Artwork)
+
+                view_log = ViewLog.objects.filter(
+                    Q(content_type=artwork_type) 
+                    and Q(object_id=kwargs['pk'])
+                    and Q(user__username=request.user.username)
+                    ).first()
+                
+                if not view_log:
+                    # create new ViewLog instance
+                    new_view_log = ViewLog(
+                        content_type=artwork_type,
+                        object_id=kwargs['pk'],
+                        content_object=artwork,
+                        user=request.user
+                    )
+                    new_view_log.save()
+
+                    
+                    
+
+
         return self.retrieve(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):

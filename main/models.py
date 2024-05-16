@@ -44,6 +44,28 @@ class Reaction(models.Model):
         return f"Reaction{self.id}: {self.reaction_type.name} | Object: {self.content_object} | User:{self.user.username}"
 
 
+class ViewLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    # generic relationship fields -- can view post, comment, etc
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+
+    class Meta:
+        constraints = [
+            # no instance should have the same content_type, object_id, user
+            models.UniqueConstraint(
+                fields=['content_type', 'object_id', 'user'],
+                name='unique_view')
+        ]
+
+
+    def __str__(self):
+        return f"ViewLog{self.id}: | Object: {self.content_object} | User:{self.user.username}"
+
+
 class Artist(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='artist')
@@ -87,8 +109,6 @@ class Artwork(models.Model):
     category = models.ForeignKey(ArtCategory, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     tags = models.CharField(max_length=200, blank=True, null=True)
-    views = models.IntegerField(default=0)
-    likes = models.IntegerField(default=0)
 
     # TODO: validate that there actually exists an object with content_type
     # and object_id
@@ -98,8 +118,9 @@ class Artwork(models.Model):
     # can be File or Image    
     content_object = GenericForeignKey('content_type', 'object_id')
 
-    # generic related fields for reverse quering
-    reaction = GenericRelation(Reaction, related_query_name='artwork_object')
+    # generic related fields for reverse quering (many to many behaviour)
+    reactions = GenericRelation(Reaction, related_query_name='artwork_object')
+    views = GenericRelation(ViewLog, related_query_name='viewlog_artwork_object')
 
     class Meta:
         constraints = [
