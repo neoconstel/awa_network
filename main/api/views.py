@@ -165,18 +165,15 @@ class ArtworkDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
     serializer_class = ArtworkSerializer
 
     def get(self, request, *args, **kwargs):
-        # update record of number of views on this artwork
-        # TODO: do not log this view if view is artwork owner
+        # update record of number of views on this artwork        
         if request.user.is_authenticated:
             artwork = Artwork.objects.filter(id=kwargs['pk']).first()
-            if artwork:
+            
+            # only log view if artwork doesn't belong to current viewer
+            if artwork and artwork.artist.user.username != request.user.username:
                 artwork_type = ContentType.objects.get_for_model(Artwork)
 
-                view_log = ViewLog.objects.filter(
-                    Q(content_type=artwork_type) 
-                    and Q(object_id=kwargs['pk'])
-                    and Q(user__username=request.user.username)
-                    ).first()
+                view_log = ViewLog.objects.filter(content_type=artwork_type, object_id=kwargs['pk'], user__username=request.user.username).first()
                 
                 if not view_log:
                     # create new ViewLog instance
