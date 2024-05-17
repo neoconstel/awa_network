@@ -1,8 +1,12 @@
 from rest_framework import serializers
 
-from main.models import Artwork, Artist, ArtCategory, Following, Reaction
+# models
+from main.models import (Artwork, Artist, ArtCategory, Following, Reaction,
+ViewLog)
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 
+# imported serializers
 from user.api.serializers import UserReadOnlySerializer
 
 
@@ -46,6 +50,7 @@ class ArtworkSerializer(serializers.ModelSerializer):
 
     # custom serializer field
     file_url = serializers.SerializerMethodField()
+    views = serializers.SerializerMethodField()
 
     # custom serializer field method to get property
     # syntax: get_<custom serializer field name>
@@ -63,16 +68,24 @@ class ArtworkSerializer(serializers.ModelSerializer):
     # nested field: nest artist serializer into this
     artist = ArtistSerializer(many=False, read_only=True)
 
+
+    def get_views(self, object):
+        art_type = ContentType.objects.get_for_model(Artwork)
+        view_logs = ViewLog.objects.filter(content_type=art_type,object_id=object.id)
+        return view_logs.count()
+
+
     class Meta:
         model = Artwork
         fields = '__all__'
 
+        read_only_fields = ['artist', 'views', 'likes']
+
         # content_type/object_id are set False because at POST (creation of
         # Artwork instance, there isn't yet a file content_type/object_id)
         extra_kwargs = {
-            'artist': {'read_only': True},
             'content_type': {'required': False},
-            'object_id': {'required': False}
+            'object_id': {'required': False},
         }
 
     def validate(self, data):
