@@ -199,6 +199,35 @@ class Following(models.Model):
         return f"Following{self.id}: {self.follower} -> {self.following}"
 
 
+class Comment(models.Model):
+    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
+
+    # generic post type -- can comment on any model instance
+    post_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    post_id = models.IntegerField()
+    post_object = GenericForeignKey('post_type', 'post_id')
+
+    content = models.TextField(null=False)
+    parent_comment = models.ForeignKey('self', null=True, blank=True,
+                    on_delete=models.CASCADE, related_name='child_comments')    
+    date_posted = models.DateTimeField(null=False, default=timezone.now)    
+
+    # generic related fields for reverse quering
+    artwork = GenericRelation(Artwork, related_query_name='comment_object')
+
+    class Meta:
+        constraints = [
+            # no two instances should have the same post_type and post_id
+            models.UniqueConstraint(
+                fields=['post_type', 'post_id'],
+                name='unique_comment')
+        ]
+
+    def __str__(self):
+        return f"Comment{self.id} by {self.user.username}: '{self.content}'"
+
+
+
 # execute this part only from models.py in the 'main' app
 if __name__ == 'main.models':
     # import wagtail page models
