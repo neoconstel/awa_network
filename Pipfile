@@ -17,6 +17,7 @@ tablib = "*"
 django-rest-framework-multi-slug-field = "*"
 wagtail = "*"
 whitenoise = "*"
+ipython = "*"
 
 [dev-packages]
 
