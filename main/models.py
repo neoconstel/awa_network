@@ -44,6 +44,30 @@ class Reaction(models.Model):
         return f"Reaction{self.id}: {self.reaction_type.name} | Object: {self.content_object} | User:{self.user.username}"
 
 
+class Comment(models.Model):
+    '''A post in this context could be an artwork upload, a review, a challenge
+    submission, an announcement, a song, etc. These can all have their
+    individual models (like the Artwork model), so this comment model is a
+    generic model meant to reference a post from any model. I have customized
+    the content_type and object_id field names to make it easier to understand
+    the working of the Comment model.'''
+
+    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
+
+    # generic post type -- can comment on any model instance
+    post_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    post_id = models.IntegerField()
+    post_object = GenericForeignKey('post_type', 'post_id')
+
+    content = models.TextField(null=False)
+    parent_comment = models.ForeignKey('self', null=True, blank=True,
+                    on_delete=models.CASCADE, related_name='child_comments')    
+    date_posted = models.DateTimeField(null=False, default=timezone.now)
+
+    def __str__(self):
+        return f"Comment{self.id}: [{self.content}] by <{self.user.username}> on {self.post_object}"
+
+
 class ViewLog(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
@@ -119,8 +143,11 @@ class Artwork(models.Model):
     content_object = GenericForeignKey('content_type', 'object_id')
 
     # generic related fields for reverse quering (many to many behaviour)
-    reactions = GenericRelation(Reaction, related_query_name='artwork_object')
+    reactions = GenericRelation(Reaction, related_query_name='reaction_artwork_object')
     views = GenericRelation(ViewLog, related_query_name='viewlog_artwork_object')
+    comments = GenericRelation(Comment, related_query_name='comment_artwork_object',
+                    content_type_field='post_type', object_id_field='post_id')
+
 
     class Meta:
         constraints = [
@@ -130,7 +157,7 @@ class Artwork(models.Model):
         ]
 
     def __str__(self):
-        return f"Artwork{self.id} | {self.title}"
+        return f"Artwork{self.id} ({self.title})"
 
 
 class File(models.Model):
@@ -197,35 +224,6 @@ class Following(models.Model):
 
     def __str__(self):
         return f"Following{self.id}: {self.follower} -> {self.following}"
-
-
-class Comment(models.Model):
-    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
-
-    # generic post type -- can comment on any model instance
-    post_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    post_id = models.IntegerField()
-    post_object = GenericForeignKey('post_type', 'post_id')
-
-    content = models.TextField(null=False)
-    parent_comment = models.ForeignKey('self', null=True, blank=True,
-                    on_delete=models.CASCADE, related_name='child_comments')    
-    date_posted = models.DateTimeField(null=False, default=timezone.now)    
-
-    # generic related fields for reverse quering
-    artwork = GenericRelation(Artwork, related_query_name='comment_object')
-
-    class Meta:
-        constraints = [
-            # no two instances should have the same post_type and post_id
-            models.UniqueConstraint(
-                fields=['post_type', 'post_id'],
-                name='unique_comment')
-        ]
-
-    def __str__(self):
-        return f"Comment{self.id} by {self.user.username}: '{self.content}'"
-
 
 
 # execute this part only from models.py in the 'main' app

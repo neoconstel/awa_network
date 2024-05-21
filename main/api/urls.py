@@ -21,5 +21,8 @@ urlpatterns = [
     path('react/add/<str:reaction_type_name>/<str:model>/<int:instance_id>/', views.React.as_view(), name='react'),
     path('react/remove/<str:reaction_type_name>/<str:model>/<int:instance_id>/', views.UnReact.as_view(), name='unreact'),
     path('react/list/<str:model>/<int:instance_id>/', views.ReactList.as_view(), name='react_list'),
+
+    path('comments/<str:model>/<int:pk>/', views.CommentList.as_view(), name='comment_list'),
+    # path('comment/<int:pk>/', views.CommentDetail.as_view(), name='comment_detail'),
     
 ]

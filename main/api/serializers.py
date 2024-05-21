@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 # models
 from main.models import (Artwork, Artist, ArtCategory, Following, Reaction,
-ViewLog)
+ViewLog, Comment)
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
@@ -153,3 +153,14 @@ class ReactionSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'user': {'read_only': True}
         }
+
+
+class CommentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Comment
+        fields = '__all__'
+        extra_kwargs = {
+            'user': {'read_only': True}
+        }
+        

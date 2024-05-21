@@ -5,7 +5,7 @@ from django.conf import settings
 # models
 from main.models import (
     Artist, Artwork, File, FileType, FileGroup, ArtCategory, Image, Following,
-    ReactionType, Reaction, ViewLog)
+    ReactionType, Reaction, ViewLog, Comment)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -13,7 +13,7 @@ from django.db.models import Q
 # serializers
 from .serializers import (
     ArtworkSerializer, ArtistSerializer, ArtCategorySerializer,
-    FollowingSerializer, ReactionSerializer)
+    FollowingSerializer, ReactionSerializer, CommentSerializer)
 
 # response / status
 from rest_framework.response import Response
@@ -41,7 +41,7 @@ from django.core.files import File as DjangoFile
 
 # pagination
 from .pagination import (ArtworkPaginationConfig, ArtistPaginationConfig,
-FollowPaginationConfig, ReactionPaginationConfig)
+FollowPaginationConfig, ReactionPaginationConfig, CommentPaginationConfig)
 
 
 class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -495,3 +495,64 @@ class UnReact(APIView):
             "removed reaction": reaction_type_name
         }
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+class CommentList(mixins.ListModelMixin, mixins.CreateModelMixin,
+                                                    generics.GenericAPIView):
+    permission_classes = [IsAuthenticatedElseReadOnly]
+    pagination_class = CommentPaginationConfig
+
+    serializer_class = CommentSerializer
+    ordering = 'id'
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+
+        class CommentNotForPost(Exception):
+            pass
+
+        try:
+            post_id = self.kwargs['pk']
+            post_type = ContentType.objects.get(model=self.kwargs['model'])
+            post = post_type.model_class().objects.get(id=post_id)
+
+            parent_comment_id = self.request.GET.get('parent_comment')
+            if parent_comment_id:
+                parent_comment = Comment.objects.get(id=parent_comment_id)
+                if parent_comment.post.pk != post.pk:
+                    raise CommentNotForPost
+            else:
+                parent_comment = None
+            content = self.request.GET.get('content')
+        except Comment.DoesNotExist:
+            return Response({"error": "invalid parent_comment id"}, 
+                                            status=status.HTTP_404_NOT_FOUND)
+        except CommentNotForPost:
+            return Response(
+                {"error": f"post (id={post_id}) and parent_comment (post_id={parent_comment.post.pk}) do not match!"},
+                                            status=status.HTTP_400_BAD_REQUEST)
+        
+        user = self.request.user
+        
+        new_comment = Comment.objects.create(
+            user=user,
+            post_type=post_type,
+            post_id=post_id,
+            post_object=post,            
+            content=content,
+            parent_comment=parent_comment
+        )            
+
+        serializer = CommentSerializer(new_comment)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def get_queryset(self):
+        post_id = self.kwargs['pk']
+        post_type = ContentType.objects.get(model=self.kwargs['model'])
+        post = post_type.model_class().objects.get(id=post_id)
+        comments = post.comments.order_by(self.__class__.ordering).all()
+        return comments
+        
