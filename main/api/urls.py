@@ -23,6 +23,6 @@ urlpatterns = [
     path('react/list/<str:model>/<int:instance_id>/', views.ReactList.as_view(), name='react_list'),
 
     path('comments/<str:model>/<int:pk>/', views.CommentList.as_view(), name='comment_list'),
-    # path('comment/<int:pk>/', views.CommentDetail.as_view(), name='comment_detail'),
+    path('comment/<int:pk>/', views.CommentDetail.as_view(), name='comment_detail'),
     
 ]

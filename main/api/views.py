@@ -30,7 +30,8 @@ from django.contrib.auth import authenticate, login
 
 # permissions
 from .permissions import (IsAuthenticated, IsAuthenticatedElseReadOnly,
-IsArtworkAuthorElseReadOnly,IsArtistUserElseReadOnly)
+IsArtworkAuthorElseReadOnly,IsArtistUserElseReadOnly,
+IsCommentAuthorElseReadOnly)
 
 # jwt authentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -555,4 +556,22 @@ class CommentList(mixins.ListModelMixin, mixins.CreateModelMixin,
         post = post_type.model_class().objects.get(id=post_id)
         comments = post.comments.order_by(self.__class__.ordering).all()
         return comments
+
+        
+class CommentDetail(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
+ mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
+
+    permission_classes = [IsCommentAuthorElseReadOnly]
+
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
         
