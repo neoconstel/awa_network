@@ -399,13 +399,13 @@ class ReactList(mixins.ListModelMixin, generics.GenericAPIView):
                 reaction['reaction_type'] for reaction in user_reactions_serialized.data]
             response.data['user_reactions'] = user_reaction_names
 
-        # order the display of results in the json output (not too necessary)
-        response.data.move_to_end('user_reactions', last=False)
-        response.data.move_to_end('instance_id', last=False)
-        response.data.move_to_end('model', last=False)
-        response.data.move_to_end('previous', last=False)
-        response.data.move_to_end('next', last=False)
-        response.data.move_to_end('count', last=False)
+        # (OUTDATED!!) order the display of results in the json output (not too necessary)        
+        # response.data.move_to_end('user_reactions', last=False)
+        # response.data.move_to_end('instance_id', last=False)
+        # response.data.move_to_end('model', last=False)
+        # response.data.move_to_end('previous', last=False)
+        # response.data.move_to_end('next', last=False)
+        # response.data.move_to_end('count', last=False)
 
         return response
 
@@ -574,4 +574,3 @@ class CommentDetail(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
-        
