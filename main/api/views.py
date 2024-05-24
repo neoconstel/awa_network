@@ -533,7 +533,7 @@ class CommentList(mixins.ListModelMixin, mixins.CreateModelMixin,
             parent_comment_id = self.request.GET.get('parent_comment')
             if parent_comment_id:
                 parent_comment = Comment.objects.get(id=parent_comment_id)
-                if parent_comment.post.pk != post.pk:
+                if parent_comment.post_object.pk != post.pk:
                     raise CommentNotForPost
             else:
                 parent_comment = None
@@ -543,7 +543,7 @@ class CommentList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                             status=status.HTTP_404_NOT_FOUND)
         except CommentNotForPost:
             return Response(
-                {"error": f"post (id={post_id}) and parent_comment (post_id={parent_comment.post.pk}) do not match!"},
+                {"error": f"post (id={post_id}) and parent_comment (post_id={parent_comment.post_object.pk}) do not match!"},
                                             status=status.HTTP_400_BAD_REQUEST)
         
         user = self.request.user
