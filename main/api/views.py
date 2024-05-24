@@ -397,7 +397,18 @@ class ReactList(mixins.ListModelMixin, generics.GenericAPIView):
 
             user_reaction_names = [
                 reaction['reaction_type'] for reaction in user_reactions_serialized.data]
-            response.data['user_reactions'] = user_reaction_names
+            # response.data['user_reactions'] = user_reaction_names
+
+        
+        # format the response data in a cute, intuitive order
+        cute_data = {
+            "count": response.data["count"],
+            "next": response.data["next"],
+            "previous": response.data["previous"],
+            "user_reactions": user_reaction_names,
+            "results": response.data["results"]
+        }
+        response.data = cute_data
 
         # (OUTDATED!!) order the display of results in the json output (not too necessary)        
         # response.data.move_to_end('user_reactions', last=False)
