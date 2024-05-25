@@ -134,6 +134,7 @@ class Artwork(models.Model):
     #     File, on_delete=models.CASCADE, related_name='artwork')
     category = models.ForeignKey(ArtCategory, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
+    description = models.CharField(max_length=1000, blank=True, null=True)
     tags = models.CharField(max_length=200, blank=True, null=True)
 
     # TODO: validate that there actually exists an object with content_type
