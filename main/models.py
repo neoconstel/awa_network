@@ -65,7 +65,9 @@ class Comment(models.Model):
     date_posted = models.DateTimeField(null=False, default=timezone.now)
 
     def __str__(self):
-        return f"Comment{self.id}: [{self.content}] by <{self.user.username}> on {self.post_object}"
+        parent_id = str(self.parent_comment.id) if self.parent_comment else ""
+        parent_string = f"<parent: {parent_id}>" if parent_id else ""
+        return f"Comment{self.id}{parent_string}: [{self.content}] by <{self.user.username}> on {self.post_object}"
 
 
 class ViewLog(models.Model):
