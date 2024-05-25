@@ -136,6 +136,7 @@ class Artwork(models.Model):
     title = models.CharField(max_length=100)
     description = models.CharField(max_length=1000, blank=True, null=True)
     tags = models.CharField(max_length=200, blank=True, null=True)
+    date_published = models.DateTimeField(default=timezone.now)
 
     # TODO: validate that there actually exists an object with content_type
     # and object_id
