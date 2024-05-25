@@ -157,6 +157,8 @@ class ReactionSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
 
+    user = UserReadOnlySerializer(many=False, read_only=True)
+
     class Meta:
         model = Comment
         fields = '__all__'
