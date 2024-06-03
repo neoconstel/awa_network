@@ -51,6 +51,8 @@ class ArtworkSerializer(serializers.ModelSerializer):
     # custom serializer field
     file_url = serializers.SerializerMethodField()
     views = serializers.SerializerMethodField()
+    content_type_readonly = serializers.SerializerMethodField()
+    object_id_readonly = serializers.SerializerMethodField()
 
     # custom serializer field method to get property
     # syntax: get_<custom serializer field name>
@@ -70,23 +72,47 @@ class ArtworkSerializer(serializers.ModelSerializer):
 
 
     def get_views(self, object):
+        # return default value if the artwork instance is being created
+        if not 'id' in dir(object):
+            return 0
+
         art_type = ContentType.objects.get_for_model(Artwork)
         view_logs = ViewLog.objects.filter(content_type=art_type,object_id=object.id)
         return view_logs.count()
 
+    
+    def get_content_type_readonly(self, object):
+        return object.content_type.id
+
+    
+    def get_object_id_readonly(self, object):
+        return object.object_id
+
 
     class Meta:
         model = Artwork
-        fields = '__all__'
+        # fields = '__all__'
+
+        '''I exclude content_type and object_id because they remain 'required'
+        even after setting 'required' to False in extra_kwargs. Even though
+        excluded, they are still writable but not visible in JSON output.
+
+        To view them in the output, I then create SerializerMethodFields with
+        similar field names just to expose them in the output.
+        '''
+        exclude = ['content_type', 'object_id']
 
         read_only_fields = ['artist', 'views', 'likes']
 
         # content_type/object_id are set False because at POST (creation of
         # Artwork instance, there isn't yet a file content_type/object_id)
-        extra_kwargs = {
-            'content_type': {'required': False},
-            'object_id': {'required': False},
-        }
+        # <for unexplainable reasons this 'required' option stopped working,
+        # so I EXCLUDED the content_type and object_id fields. It works well
+        # with CRUD>
+        # extra_kwargs = {
+        #     'content_type': {'required': False},
+        #     'object_id': {'required': False},
+        # }
 
     def validate(self, data):
         super().validate(data)
