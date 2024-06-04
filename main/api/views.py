@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 import json
 from django.conf import settings
+import random
 
 # models
 from main.models import (
@@ -119,6 +120,9 @@ class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
         search_term = self.request.GET.get('search')
         filter = self.request.GET.get('filter')
 
+        random_sample = self.request.GET.get('random_sample')
+        random_sample_size = self.request.GET.get('random_sample_size')
+
         artworks_query = Artwork.objects
 
         # filter based on those liked (or reacted on) by user with username
@@ -131,6 +135,8 @@ class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
             else:
                 return Artwork.objects.none()
 
+
+        # filter based on search term/filter parameter
         if search_term:
             # filter example format: <model field>__icontains=<search term>
             if filter == 'title':
@@ -153,6 +159,26 @@ class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
             elif filter == 'tags':
                 artworks_query = artworks_query.filter(
                                 tags__icontains=search_term)
+        
+        
+        '''Return a random sample from the entire query result
+        '''
+        if random_sample == 'true':
+            try:
+                random_sample_size = int(random_sample_size)
+            except:
+                pass
+            else:
+                # choose a number of random samples and return                
+                if random_sample_size > artworks_query.count():
+                    random_sample_size = artworks_query.count()
+                    
+                random_art_ids = random.sample(
+                    [artwork.id for artwork in artworks_query.all()],
+                    random_sample_size)
+                
+                # return this without ordering, as it is to be random
+                return artworks_query.filter(id__in=random_art_ids).all()
 
         return artworks_query.order_by(self.__class__.ordering).all()
 
