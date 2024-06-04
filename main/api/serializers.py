@@ -51,8 +51,6 @@ class ArtworkSerializer(serializers.ModelSerializer):
     # custom serializer field
     file_url = serializers.SerializerMethodField()
     views = serializers.SerializerMethodField()
-    content_type_readonly = serializers.SerializerMethodField()
-    object_id_readonly = serializers.SerializerMethodField()
 
     # custom serializer field method to get property
     # syntax: get_<custom serializer field name>
@@ -80,18 +78,10 @@ class ArtworkSerializer(serializers.ModelSerializer):
         view_logs = ViewLog.objects.filter(content_type=art_type,object_id=object.id)
         return view_logs.count()
 
-    
-    def get_content_type_readonly(self, object):
-        return object.content_type.id
-
-    
-    def get_object_id_readonly(self, object):
-        return object.object_id
-
 
     class Meta:
         model = Artwork
-        # fields = '__all__'
+        fields = '__all__'
 
         '''I exclude content_type and object_id because they remain 'required'
         even after setting 'required' to False in extra_kwargs. Even though
@@ -100,7 +90,7 @@ class ArtworkSerializer(serializers.ModelSerializer):
         To view them in the output, I then create SerializerMethodFields with
         similar field names just to expose them in the output.
         '''
-        exclude = ['content_type', 'object_id']
+        # exclude = ['content_type', 'object_id']
 
         read_only_fields = ['artist', 'views', 'likes']
 
@@ -109,10 +99,10 @@ class ArtworkSerializer(serializers.ModelSerializer):
         # <for unexplainable reasons this 'required' option stopped working,
         # so I EXCLUDED the content_type and object_id fields. It works well
         # with CRUD>
-        # extra_kwargs = {
-        #     'content_type': {'required': False},
-        #     'object_id': {'required': False},
-        # }
+        extra_kwargs = {
+            'content_type': {'required': False},
+            'object_id': {'required': False},
+        }
 
     def validate(self, data):
         super().validate(data)
