@@ -541,7 +541,7 @@ class CommentList(mixins.ListModelMixin, mixins.CreateModelMixin,
     pagination_class = CommentPaginationConfig
 
     serializer_class = CommentSerializer
-    ordering = 'id'
+    ordering = '-id'
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
