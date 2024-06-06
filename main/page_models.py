@@ -6,14 +6,22 @@ from wagtail.models import Page, Orderable
 from wagtail.fields import RichTextField
 from wagtail.admin.panels import FieldPanel, InlinePanel
 from wagtail.api import APIField
-
 from modelcluster.fields import ParentalKey
-
 from wagtail.search import index
+
+# for using wagtail admin custom settings
+from wagtail.contrib.settings.models import(
+    BaseGenericSetting,
+    BaseSiteSetting,
+    register_setting
+)
+
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+
+# --------------------------SITE PAGES---------------------------
 
 class BasePage(Page):
     is_creatable = False # List Page type in admin? (not inherited)
@@ -177,3 +185,17 @@ class AnimationChallengePage(BasePage):
 class ConceptChallengePage(BasePage):
     parent_page_types = ['main.ChallengePage']
 
+
+
+
+# ---------------------------- SITE SETTINGS--------------------------
+
+@register_setting
+class SiteConfigurations(BaseSiteSetting):
+    default_profile_image = models.ForeignKey('wagtailimages.Image', null=True, 
+                on_delete=models.SET_NULL, related_name='+'
+    )
+
+    panels = [
+        FieldPanel('default_profile_image')
+    ]

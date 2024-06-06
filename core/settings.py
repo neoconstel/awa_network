@@ -75,6 +75,7 @@ INSTALLED_APPS = [
 
     'taggit',
     'modelcluster',
+    'wagtail.contrib.settings'
 ]
 
 MIDDLEWARE = [
