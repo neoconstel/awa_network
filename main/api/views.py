@@ -6,7 +6,7 @@ import random
 # models
 from main.models import (
     Artist, Artwork, File, FileType, FileGroup, ArtCategory, Image, Following,
-    ReactionType, Reaction, ViewLog, Comment)
+    ReactionType, Reaction, ViewLog, Comment, SiteConfigurations)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -611,3 +611,17 @@ class CommentDetail(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
+
+
+class SiteConfigurationsApi(APIView):
+    '''This is for use with the wagtail SiteConfigurations model, ultimately
+    to have an API for retrieving wagtail custom settings'''
+    def get(self, request, *args, **kwargs):
+        # the object containing all the configuration settings for this site
+        settings = SiteConfigurations.objects.first()
+
+        data = {
+            'default_profile_image_url': settings.default_profile_image.file.url
+        }
+
+        return Response(data, status=status.HTTP_200_OK)

@@ -25,4 +25,8 @@ urlpatterns = [
     path('comments/<str:model>/<int:pk>/', views.CommentList.as_view(), name='comment_list'),
     path('comment/<int:pk>/', views.CommentDetail.as_view(), name='comment_detail'),
     
+    
+    # wagtail admin custom settings API. It may be a good idea to shift this
+    # urlpattern along with its view to a separate part.
+    path('siteconfigs/', views.SiteConfigurationsApi.as_view(), name='site_configs'),
 ]
