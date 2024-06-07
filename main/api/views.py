@@ -620,8 +620,9 @@ class SiteConfigurationsApi(APIView):
         # the object containing all the configuration settings for this site
         settings = SiteConfigurations.objects.first()
 
-        data = {
-            'default_profile_image_url': settings.default_profile_image.file.url
-        }
+        data = {}
+
+        if settings.default_profile_image:
+            data['default_profile_image_url'] = settings.default_profile_image.file.url
 
         return Response(data, status=status.HTTP_200_OK)
