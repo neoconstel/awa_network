@@ -57,7 +57,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_verified = models.BooleanField(default=False)
 
     profile_image = models.ImageField(
-        upload_to="profile_pics", null=False, default='default.ico')
+        upload_to="profile_pics", null=True, blank=True)
     bio = models.CharField(
         max_length=500, null=False, default="nothing to see here")
     membership = models.CharField(max_length=20, null=False, default="Basic")
