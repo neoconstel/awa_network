@@ -614,6 +614,9 @@ class CommentDetail(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
 
 
 class SiteConfigurationsApi(APIView):
+
+    permission_classes = []
+
     '''This is for use with the wagtail SiteConfigurations model, ultimately
     to have an API for retrieving wagtail custom settings'''
     def get(self, request, *args, **kwargs):
