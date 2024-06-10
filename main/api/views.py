@@ -284,7 +284,7 @@ class ArtCategoryList(mixins.ListModelMixin, mixins.CreateModelMixin,
 class FollowingList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                                 generics.GenericAPIView):
 
-    # permission_classes = [set following permission here]
+    permission_classes = [IsAuthenticatedElseReadOnly]
     pagination_class = FollowPaginationConfig
 
     ordering = '-id'
