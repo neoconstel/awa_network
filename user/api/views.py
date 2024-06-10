@@ -194,17 +194,21 @@ class UserInfo(APIView):
     would override the DEFAULT_AUTHENTICATION_CLASSES). If there isn't
     an authenticated user, the returned JSON would have no valid user info.'''
 
+    permission_classes = []
+
     def get(self, request):
 
         user = request.user
         
-        if user:
+        if user.is_authenticated:
             data = {
                 'user': UserReadOnlySerializer(user).data
             }
+        
+        else:
+            data = {}
 
-            return Response(data, status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class VerifyEmail(APIView):

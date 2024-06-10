@@ -415,6 +415,7 @@ class ReactList(mixins.ListModelMixin, generics.GenericAPIView):
 
         content_type = ContentType.objects.get(model=model.lower())
 
+        user_reaction_names = []
         if self.request.user.is_authenticated:
             reactions_by_user = Reaction.objects.filter(content_type=content_type, 
                             object_id=instance_id, user=request.user).order_by(
