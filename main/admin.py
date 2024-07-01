@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (Artist, FileType, File, Artwork, Following, ArtCategory,
-FileGroup, Image, ReactionType, Reaction, ViewLog, Comment)
+FileGroup, Image, ReactionType, Reaction, ViewLog, Comment, Review)
 
 # wagtail
 from .models import Page
@@ -31,6 +31,7 @@ admin.site.register(ReactionType)
 admin.site.register(Reaction)
 admin.site.register(ViewLog)
 admin.site.register(Comment)
+admin.site.register(Review)
 
 
 # wagtail

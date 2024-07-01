@@ -1,3 +1,8 @@
+'''TODO:
+    - convert all Interger primary keys to BigInteger fields (UUID where possible)
+'''
+
+
 from django.db import models
 from django.utils import timezone
 import time
@@ -228,6 +233,34 @@ class Following(models.Model):
 
     def __str__(self):
         return f"Following{self.id}: {self.follower} -> {self.following}"
+
+
+class Review(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='user')
+    title = models.CharField(max_length=100)
+    category = models.ForeignKey(ArtCategory, on_delete=models.CASCADE)
+    tags = models.CharField(max_length=200, blank=True, null=True)
+    date_published = models.DateTimeField(default=timezone.now)
+
+    # TODO: validate that there actually exists an object with caption_media_type
+    # and caption_media_object
+    caption_media_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name="+")
+    caption_media_id = models.IntegerField()
+    caption_media_object = GenericForeignKey('caption_media_type', 'caption_media_id')
+
+    body_media_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name="+")
+    body_media_id = models.IntegerField()
+    body_media_object = GenericForeignKey('body_media_type', 'body_media_id')
+
+
+    # generic related fields for reverse quering (many to many behaviour)
+    comments = GenericRelation(Comment, related_query_name='comment_review_object',
+                    content_type_field='caption_media_type', object_id_field='caption_media_id')
+
+
+    def __str__(self):
+        return f"Review{self.id} ({self.title})"
 
 
 # execute this part only from models.py in the 'main' app
