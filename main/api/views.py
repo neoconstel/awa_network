@@ -6,7 +6,7 @@ import random
 # models
 from main.models import (
     Artist, Artwork, File, FileType, FileGroup, ArtCategory, Image, Following,
-    ReactionType, Reaction, ViewLog, Comment, SiteConfigurations)
+    ReactionType, Reaction, ViewLog, Comment, SiteConfigurations, Review)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -14,7 +14,8 @@ from django.db.models import Q
 # serializers
 from .serializers import (
     ArtworkSerializer, ArtistSerializer, ArtCategorySerializer,
-    FollowingSerializer, ReactionSerializer, CommentSerializer)
+    FollowingSerializer, ReactionSerializer, CommentSerializer,
+    ReviewSerializer)
 
 # response / status
 from rest_framework.response import Response
@@ -32,7 +33,7 @@ from django.contrib.auth import authenticate, login
 # permissions
 from .permissions import (IsAuthenticated, IsAuthenticatedElseReadOnly,
 IsArtworkAuthorElseReadOnly,IsArtistUserElseReadOnly,
-IsCommentAuthorElseReadOnly)
+IsCommentAuthorElseReadOnly, IsReviewAuthorElseReadOnly)
 
 # jwt authentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -630,3 +631,34 @@ class SiteConfigurationsApi(APIView):
             data['default_profile_image_url'] = settings.default_profile_image.file.url
 
         return Response(data, status=status.HTTP_200_OK)
+
+
+class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
+                                                generics.GenericAPIView):
+
+    permission_classes = [IsAuthenticatedElseReadOnly]
+    # pagination_class = 
+    ordering = '-id'
+
+    serializer_class = ReviewSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+
+class ReviewDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
+                        mixins.DestroyModelMixin, generics.GenericAPIView):
+
+    permission_classes = [IsReviewAuthorElseReadOnly]
+
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)

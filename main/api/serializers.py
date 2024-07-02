@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 # models
 from main.models import (Artwork, Artist, ArtCategory, Following, Reaction,
-ViewLog, Comment)
+ViewLog, Comment, Review)
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
@@ -180,5 +180,63 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = '__all__'
         extra_kwargs = {
             'user': {'read_only': True}
+        }
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+
+    user = UserReadOnlySerializer(many=False, read_only=True)
+
+    category = serializers.SerializerMethodField() # ArtCategory
+
+    '''An image media type belongs to the Image model
+    All other file types belong to the File model'''
+    caption_media_type = serializers.SerializerMethodField()
+    body_media_type = serializers.SerializerMethodField()
+    caption_media_url = serializers.SerializerMethodField()
+    body_media_url = serializers.SerializerMethodField()
+    # caption_media_model = serializers.SerializerMethodField()
+    # body_media_model = serializers.SerializerMethodField()
+
+    def get_category(self,object):
+        return object.category.name
+
+    def get_caption_media_type(self,object):
+        model_name = ContentType.objects.get_for_model(
+            object.caption_media_object).model
+        if model_name == 'image':
+            return model_name
+        elif model_name == 'file':
+            return object.caption_media_object.file_type.name
+
+    def get_body_media_type(self,object):
+        model_name = ContentType.objects.get_for_model(
+            object.body_media_object).model
+        if model_name == 'image':
+            return model_name
+        elif model_name == 'file':
+            return object.body_media_object.file_type.name
+
+    def get_caption_media_url(self,object):
+        return object.caption_media_object.resource.url
+
+    def get_body_media_url(self,object):
+        return object.body_media_object.resource.url
+
+    # def get_caption_media_model(self,object):
+    #     model_name = ContentType.objects.get_for_model(
+    #         object.caption_media_object).model
+    #     return model_name
+
+    # def get_body_media_model(self,object):
+    #     model_name = ContentType.objects.get_for_model(
+    #         object.body_media_object).model
+    #     return model_name
+
+    class Meta:
+        model = Review
+        fields = '__all__'
+        extra_kwargs = {
+            
         }
         
