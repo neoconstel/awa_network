@@ -640,6 +640,7 @@ class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
     # pagination_class = 
     ordering = '-id'
 
+    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
     def get(self, request, *args, **kwargs):

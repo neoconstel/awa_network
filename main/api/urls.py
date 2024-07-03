@@ -25,6 +25,7 @@ urlpatterns = [
     path('comments/<str:model>/<int:pk>/', views.CommentList.as_view(), name='comment_list'),
     path('comment/<int:pk>/', views.CommentDetail.as_view(), name='comment_detail'),
 
+    path('reviews/', views.ReviewList.as_view(), name='review_list'),
     path('review/<int:pk>/', views.ReviewDetail.as_view(), name='review_detail'),
     
     
