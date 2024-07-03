@@ -239,6 +239,7 @@ class Review(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='user')
     title = models.CharField(max_length=100)
+    content = models.CharField(max_length=10000)
     category = models.ForeignKey(ArtCategory, on_delete=models.CASCADE)
     tags = models.CharField(max_length=200, blank=True, null=True)
     date_published = models.DateTimeField(default=timezone.now)
