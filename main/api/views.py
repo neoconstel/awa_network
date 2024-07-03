@@ -44,7 +44,8 @@ from django.core.files import File as DjangoFile
 
 # pagination
 from .pagination import (ArtworkPaginationConfig, ArtistPaginationConfig,
-FollowPaginationConfig, ReactionPaginationConfig, CommentPaginationConfig)
+FollowPaginationConfig, ReactionPaginationConfig, CommentPaginationConfig,
+ReviewPaginationConfig)
 
 
 class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -637,7 +638,7 @@ class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                                 generics.GenericAPIView):
 
     permission_classes = [IsAuthenticatedElseReadOnly]
-    # pagination_class = 
+    pagination_class = ReviewPaginationConfig
     ordering = '-id'
 
     queryset = Review.objects.all()
