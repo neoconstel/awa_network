@@ -210,6 +210,9 @@ class ReviewSerializer(serializers.ModelSerializer):
             return object.caption_media_object.file_type.name
 
     def get_body_media_type(self,object):
+        if not object.body_media_object:
+            return None
+
         model_name = ContentType.objects.get_for_model(
             object.body_media_object).model
         if model_name == 'image':
@@ -221,6 +224,9 @@ class ReviewSerializer(serializers.ModelSerializer):
         return object.caption_media_object.resource.url
 
     def get_body_media_url(self,object):
+        if not object.body_media_object:
+            return None
+
         return object.body_media_object.resource.url
 
     # def get_caption_media_model(self,object):

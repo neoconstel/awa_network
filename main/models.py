@@ -250,8 +250,8 @@ class Review(models.Model):
     caption_media_id = models.IntegerField()
     caption_media_object = GenericForeignKey('caption_media_type', 'caption_media_id')
 
-    body_media_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name="+")
-    body_media_id = models.IntegerField()
+    body_media_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name="+", blank=True, null=True)
+    body_media_id = models.IntegerField(blank=True, null=True)
     body_media_object = GenericForeignKey('body_media_type', 'body_media_id')
 
 
