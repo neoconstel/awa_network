@@ -667,37 +667,78 @@ class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
         serializer = ReviewSerializer(data=data)
 
         if serializer.is_valid():
+            print("VALID SERIALIZER")
+            print("request.FILES:")
+            print(request.FILES)
+            print("DATA:")
+            print(data)
+
+            # ---FILE PROCESSING---
+
+            # caption file processing
             try: 
                 data['category'] = ArtCategory.objects.get(id=data['category'])            
                 
                 # the uploaded file must be wrapped into a file object
-                wrapped_request_file = DjangoFile(request.FILES['file'])
+                wrapped_request_file = DjangoFile(request.FILES['caption_file'])
 
-                file_type = FileType.objects.get(name=data['file_type'])
+                body_file_type = FileType.objects.get(name=data['caption_file_type'])
                 file_group = FileGroup.objects.get(name='reviews')
             except Exception as e:
+                print(e.args)
                 return Response({'error': 'make sure to select a file!'},
                  status=status.HTTP_400_BAD_REQUEST)
 
             # create (Image or File) FieldFile instance using the file object
-            if file_type.name == 'image':
+            if body_file_type.name == 'image':
                 
-                file = Image(
+                body_file = Image(
                     file_group=file_group,resource=wrapped_request_file)
             else:
-                file = File(
-                    file_type=file_type, file_group=file_group,
+                body_file = File(
+                    file_type=body_file_type, file_group=file_group,
                     resource=wrapped_request_file)
 
-            file.save()
+            body_file.save()
 
             # data["file"] = file
-            data["caption_media_type"] = ContentType.objects.get_for_model(file)
-            data["caption_media_id"] = file.id
-            data["caption_media_object"] = file
+            data["caption_media_type"] = ContentType.objects.get_for_model(body_file)
+            data["caption_media_id"] = body_file.id
+            data["caption_media_object"] = body_file
+
+
+            # body file processing (some redundant lines ommitted)
+            if request.FILES.get('body_file'):
+                try:            
+                    # the uploaded file must be wrapped into a file object
+                    wrapped_request_file = DjangoFile(request.FILES['body_file'])
+
+                    body_file_type = FileType.objects.get(name=data['body_file_type'])
+                except Exception as e:
+                    print(e.args)
+                    return Response({'error': 'make sure to select a file!'},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+                # create (Image or File) FieldFile instance using the file object
+                if body_file_type.name == 'image':
+                    
+                    body_file = Image(
+                        file_group=file_group,resource=wrapped_request_file)
+                else:
+                    body_file = File(
+                        file_type=body_file_type, file_group=file_group,
+                        resource=wrapped_request_file)
+
+                body_file.save()
+
+                # data["file"] = file
+                data["body_media_type"] = ContentType.objects.get_for_model(body_file)
+                data["body_media_id"] = body_file.id
+                data["body_media_object"] = body_file
 
             # remove unrelated data from dictionary before creating Artist
-            data.pop('file_type')
+            data.pop('caption_file_type')
+            data.pop('body_file_type')
 
             review = Review(**data)
             review.save()
