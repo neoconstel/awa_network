@@ -67,6 +67,13 @@ class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
         data['artist'] = self.request.user.artist
 
         # print(f"ORDERED_DICT: {data}\n\n\n")
+        '''
+        print(data) give data in this form:
+
+        {'title': 'testing artwork serializer', 'category': '6',
+        'description': 'any descr', 'tags': 'any tags', 'file_type': 'image', 
+        'artist': <Artist: Artist2 | aladdin>}
+        '''
 
         serializer = ArtworkSerializer(data=data)
 
@@ -641,11 +648,66 @@ class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
     pagination_class = ReviewPaginationConfig
     ordering = '-id'
 
-    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return Review.objects.order_by(self.__class__.ordering).all()
+
+    def post(self, request, *args, **kwargs):
+
+        # get dictionary equivalent of POST data and add additional data
+        data = request.POST.dict()  # {'title': title, 'content': content,...}
+        data['user'] = self.request.user
+
+        # print(f"ORDERED_DICT: {data}\n\n\n")
+
+        serializer = ReviewSerializer(data=data)
+
+        if serializer.is_valid():
+            try: 
+                data['category'] = ArtCategory.objects.get(id=data['category'])            
+                
+                # the uploaded file must be wrapped into a file object
+                wrapped_request_file = DjangoFile(request.FILES['file'])
+
+                file_type = FileType.objects.get(name=data['file_type'])
+                file_group = FileGroup.objects.get(name='reviews')
+            except Exception as e:
+                return Response({'error': 'make sure to select a file!'},
+                 status=status.HTTP_400_BAD_REQUEST)
+
+            # create (Image or File) FieldFile instance using the file object
+            if file_type.name == 'image':
+                
+                file = Image(
+                    file_group=file_group,resource=wrapped_request_file)
+            else:
+                file = File(
+                    file_type=file_type, file_group=file_group,
+                    resource=wrapped_request_file)
+
+            file.save()
+
+            # data["file"] = file
+            data["caption_media_type"] = ContentType.objects.get_for_model(file)
+            data["caption_media_id"] = file.id
+            data["caption_media_object"] = file
+
+            # remove unrelated data from dictionary before creating Artist
+            data.pop('file_type')
+
+            review = Review(**data)
+            review.save()
+
+            print("reached this point")
+            output_data = serializer.data
+            output_data["file_url"] = review.caption_media_object.resource.url           
+
+            return Response(output_data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ReviewDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,

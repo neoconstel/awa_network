@@ -199,17 +199,32 @@ class ReviewSerializer(serializers.ModelSerializer):
     # body_media_model = serializers.SerializerMethodField()
 
     def get_category(self,object):
+        try:
+            object.pk # object has id.
+        except:
+            return None
+        
         return object.category.name
 
     def get_caption_media_type(self,object):
+        try:
+            object.pk # object has id.
+        except:
+            return None
+        
         model_name = ContentType.objects.get_for_model(
-            object.caption_media_object).model
+        object.caption_media_object).model
         if model_name == 'image':
             return model_name
         elif model_name == 'file':
             return object.caption_media_object.file_type.name
 
     def get_body_media_type(self,object):
+        try:
+            object.pk # object has id.
+        except:
+            return None
+        
         if not object.body_media_object:
             return None
 
@@ -221,9 +236,19 @@ class ReviewSerializer(serializers.ModelSerializer):
             return object.body_media_object.file_type.name
 
     def get_caption_media_url(self,object):
+        try:
+            object.pk # object has id.
+        except:
+            return None
+        
         return object.caption_media_object.resource.url
 
     def get_body_media_url(self,object):
+        try:
+            object.pk # object has id.
+        except:
+            return None
+        
         if not object.body_media_object:
             return None
 
@@ -242,7 +267,14 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
+
+        # media_types and IDs are set False because at POST (creation of
+        # Review instance, there isn't yet a file resource to provide the 
+        # media type/media id)
         extra_kwargs = {
-            
+            'caption_media_type': {'required': False},
+            'caption_media_id': {'required': False},
+            'body_media_type': {'required': False},
+            'body_media_id': {'required': False}
         }
         
