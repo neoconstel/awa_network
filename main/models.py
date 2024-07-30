@@ -151,7 +151,11 @@ class Artwork(models.Model):
     # can be File or Image    
     content_object = GenericForeignKey('content_type', 'object_id')
 
-    # generic related fields for reverse quering (many to many behaviour)
+    '''generic related fields for reverse quering (many to many behaviour)
+    note that in the case of <comments>, which is of the Comment model (where
+    a custom content_type/object_id field name has been used, we now specify)
+    the custom field names (for the COMMENT model) in the GenericRelation
+    we are creating in the Artwork model'''
     reactions = GenericRelation(Reaction, related_query_name='reaction_artwork_object')
     views = GenericRelation(ViewLog, related_query_name='viewlog_artwork_object')
     comments = GenericRelation(Comment, related_query_name='comment_artwork_object',
@@ -255,9 +259,11 @@ class Review(models.Model):
     body_media_object = GenericForeignKey('body_media_type', 'body_media_id')
 
 
-    # generic related fields for reverse quering (many to many behaviour)
+    '''generic related fields for reverse quering (many to many behaviour)
+    note that the content_type_field and object_id_field belong to the COMMENT
+    model, NOT this Review model'''
     comments = GenericRelation(Comment, related_query_name='comment_review_object',
-                    content_type_field='caption_media_type', object_id_field='caption_media_id')
+                    content_type_field='post_type', object_id_field='post_id')
 
 
     def __str__(self):
