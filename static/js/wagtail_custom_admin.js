@@ -11,9 +11,16 @@ if (
   window.location.href.includes("/account") ||
   window.location.href.includes("/adminaccount")
 ) {
-  // Do something if the current URL contains "/admin/account"
+  // Do something if the current URL contains "/adminaccount"
   const default_email_field = document.querySelector("#id_name_email-email");
   default_email_field.value = "thisEmailField@isNotSubmitted.com";
   default_email_field.parentElement.parentElement.parentElement.hidden = true;
   console.log("Hidden faulty email field from admin setting");
+} else if (window.location.href.includes("/adminusers")) {
+  // Do something if the current URL contains "/adminusers"
+  const username_tab = document.querySelector(
+    "#listing-results > table > thead > tr > th.username > a"
+  );
+  username_tab.innerText = "Email";
+  console.log("Renamed the 'Username' tab to 'Email'");
 }
