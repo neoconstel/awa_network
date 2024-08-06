@@ -69,13 +69,39 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self) -> str:
         return self.username
 
-    # useful in wagtail admin user list
+
+    '''
+    ---useful in wagtail admin user list---
+    Use:
+    When using a custom User model, the wagtail admin user list will likely
+    display the users' usernames in the Name tab. This retrieves the intended
+    full names for the Name tab.
+
+    This method only becomes effective if the get_username() method is
+    customized/overridden.
+    '''
     def get_full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
-    # useful in wagtail admin user list
-    def get_username(self) -> str:
-        return self.username
+    '''
+    ---useful in wagtail admin user list BUT also affects the django admin---
+    This method is meant to retrieve the primary login field, which by
+    default is the username. However, if using a custom User model that uses
+    email as the primary login field, this method is expected by the django
+    admin to return the user email.
+
+    Use:
+    When using a custom User model where the primary login field has been 
+    changed to email, the wagtail admin user list will display the users' 
+    emails in the username tab. This retrieves the intended usernames for the 
+    username tab, but causes a conflict with the django admin (the django 
+    admin will then save the username (gotten by get_username) into the email 
+    attribute which messes up the user data). So a method needs to be provided
+    to distinguish between the wagtail admin and the django admin while 
+    calling this method.
+    '''
+    # def get_username(self) -> str:
+    #     return self.username
 
     def save(self, *args, **kwargs) -> None:
         # give UNIQUE default username until user sets desired username.
