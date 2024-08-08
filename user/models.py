@@ -31,6 +31,7 @@ class AccountManager(BaseUserManager):
         other_fields.setdefault('is_superuser', True)
         other_fields.setdefault('is_active', True)
         other_fields.setdefault('is_verified', True)
+        other_fields.setdefault('is_reviewer', True)
 
         if other_fields.get('is_staff') is not True:
             raise ValueError('Superuser must be assigned to is_staff=True')
@@ -55,6 +56,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
+    is_reviewer = models.BooleanField(default=False)
 
     profile_image = models.ImageField(
         upload_to="profile_pics", null=True, blank=True)

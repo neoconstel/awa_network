@@ -21,6 +21,8 @@ if (
   const username_tab = document.querySelector(
     "#listing-results > table > thead > tr > th.username > a"
   );
-  username_tab.innerText = "Email";
-  console.log("Renamed the 'Username' tab to 'Email'");
+  if (username_tab != undefined) {
+    username_tab.innerText = "Email";
+    console.log("Renamed the 'Username' tab to 'Email'");
+  }
 }
