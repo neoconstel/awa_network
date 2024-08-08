@@ -33,7 +33,7 @@ from django.contrib.auth import authenticate, login
 # permissions
 from .permissions import (IsAuthenticated, IsAuthenticatedElseReadOnly,
 IsArtworkAuthorElseReadOnly,IsArtistUserElseReadOnly,
-IsCommentAuthorElseReadOnly, IsReviewAuthorElseReadOnly)
+IsCommentAuthorElseReadOnly, IsReviewerElseReadOnly)
 
 # jwt authentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -644,7 +644,7 @@ class SiteConfigurationsApi(APIView):
 class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                                 generics.GenericAPIView):
 
-    permission_classes = [IsAuthenticatedElseReadOnly]
+    permission_classes = [IsReviewerElseReadOnly]
     pagination_class = ReviewPaginationConfig
     ordering = '-id'
 
@@ -657,6 +657,12 @@ class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
         return Review.objects.order_by(self.__class__.ordering).all()
 
     def post(self, request, *args, **kwargs):
+
+        if not (self.request.user.is_authenticated and \
+                self.request.user.is_reviewer):
+            return Response({'error': 'unauthorized to make review'},
+                    status=status.HTTP_401_UNAUTHORIZED)
+        
 
         # get dictionary equivalent of POST data and add additional data
         data = request.POST.dict()  # {'title': title, 'content': content,...}
@@ -754,7 +760,7 @@ class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
 class ReviewDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
                         mixins.DestroyModelMixin, generics.GenericAPIView):
 
-    permission_classes = [IsReviewAuthorElseReadOnly]
+    permission_classes = [IsReviewerElseReadOnly]
 
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer

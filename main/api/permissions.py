@@ -56,14 +56,16 @@ class IsCommentAuthorElseReadOnly(permissions.BasePermission):
         return user_permission or request.user.is_staff
 
 
-class IsReviewAuthorElseReadOnly(permissions.BasePermission):
-    '''The request allows full access if user is the ReviewAuthor, else it only
-    allows read-only access'''
+class IsReviewerElseReadOnly(permissions.BasePermission):
+    '''The request allows full access if user is Reviewer and review owner, 
+    else it only allows read-only access'''
 
     def has_object_permission(self, request, view, obj):
         # if this is a GET, OPTIONS, or HEAD request
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        user_permission = request.user and obj.user == request.user
+        user_permission = request.user and obj.user == request.user \
+            and request.user.is_reviewer
         return user_permission or request.user.is_staff
+    
