@@ -239,7 +239,7 @@ class Following(models.Model):
         return f"Following{self.id}: {self.follower} -> {self.following}"
 
 
-class Review(models.Model):
+class Review(models.Model):    
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='user')
     title = models.CharField(max_length=100)
@@ -247,6 +247,7 @@ class Review(models.Model):
     category = models.ForeignKey(ArtCategory, on_delete=models.CASCADE)
     tags = models.CharField(max_length=200, blank=True, null=True)
     date_published = models.DateTimeField(default=timezone.now)
+    approved = models.BooleanField(default=False)
 
     # TODO: validate that there actually exists an object with caption_media_type
     # and caption_media_object
@@ -268,6 +269,8 @@ class Review(models.Model):
 
     def __str__(self):
         return f"Review{self.id} ({self.title})"
+    
+
 
 
 # execute this part only from models.py in the 'main' app
