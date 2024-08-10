@@ -654,7 +654,7 @@ class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
         return self.list(request, *args, **kwargs)
 
     def get_queryset(self):
-        return Review.objects.order_by(self.__class__.ordering).all()
+        return Review.objects.order_by(self.__class__.ordering).filter(approved=True).all()
 
     def post(self, request, *args, **kwargs):
 
