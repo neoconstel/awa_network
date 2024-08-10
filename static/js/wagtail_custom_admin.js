@@ -61,4 +61,16 @@ if (
       "Set Reviews filter to display only reviews with approved=False"
     );
   }, 1000);
+} else if (window.location.href.endsWith("/admin")) {
+  // Do something if the current URL ends with "/admin"
+  const pendingReviewsLink = document.querySelector(
+    "#wagtail-sidebar > div > div > nav > ul > li:nth-child(4) > a > div > span"
+  );
+
+  /**
+   * TODO:
+   * - write an API view that simply returns number of unapproved reviews via JSON
+   * - then in this wagtail_custom_admin.js, use it to get number of unapproved reviews
+   * - set that number within the innerText of pendingReviewsLink (which is in the wagtail menu)
+   */
 }
