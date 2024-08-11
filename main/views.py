@@ -8,9 +8,29 @@ from wagtail.admin.filters import WagtailFilterSet
 
 
 class ReviewFilter(WagtailFilterSet):
+    '''filterset_class for the ReviewViewset'''
     class Meta:
         model = Review
-        fields = ['approved']
+        fields = ['title', 'category', 'approved']
+
+    '''
+    ---set initial form values for this FilterSet---
+    Syntax: data[<field_name>] = value
+    ('approved') in this case is the field name of a radiobutton group of 3
+    choices, each settable by the values: None, True and False respectively OR
+    -1. 1 and 0 respectively.
+
+    It works because this ReviewFilter class is a WagtailFilterSet, and
+    WagtailFilterSets are built on top of the FilterSets from django-filter.
+
+    Reference for this solution can be found here (comment from jcushman):
+        https://github.com/carltongibson/django-filter/issues/322
+    '''
+    def __init__(self,data,*args,**kwargs):
+        if not data.get('approved'):
+            data = data.copy()
+            data['approved'] = False
+        super().__init__(data, *args, **kwargs)
         
 
 # Create your views here.
@@ -27,6 +47,9 @@ class ReviewViewSet(ModelViewSet):
     inspect_view_enabled = True
     menu_label = "Pending Reviews"
 
+    # IMPORTANT addition. To provide a filter interface which we can customize
+    # with default form values (default form values aren't a recommended
+    # practice, but for now this is the most viable solution)
     filterset_class = ReviewFilter
 
 
