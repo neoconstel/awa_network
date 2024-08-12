@@ -56,7 +56,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
-    is_reviewer = models.BooleanField(default=False)
 
     profile_image = models.ImageField(
         upload_to="profile_pics", null=True, blank=True)

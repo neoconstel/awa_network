@@ -40,7 +40,6 @@ class CustomUserEditForm(UserEditForm):
     bio = forms.CharField(required=False, label=_("Bio"))
     is_staff = forms.BooleanField(required=False, label=_("Is Staff"))
     is_verified = forms.BooleanField(required=False, label=_("Is Verified"))
-    is_reviewer = forms.BooleanField(required=False, label=_("Is Reviewer"))
     profile_image = forms.ImageField(required=False, label=_("Profile Image"))
 
 
@@ -63,7 +62,6 @@ class CustomUserCreationForm(UserCreationForm):
     is_staff = forms.BooleanField(required=False, label=_("Is Staff"))
     is_active = forms.BooleanField(required=False, label=_("Is Active"))
     is_verified = forms.BooleanField(required=False, label=_("Is Verified"))
-    is_reviewer = forms.BooleanField(required=False, label=_("Is Reviewer"))
     profile_image = forms.ImageField(required=False, label=_("Profile Image"))
 
     def save(self, *args, **kwargs):

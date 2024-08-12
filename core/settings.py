@@ -248,4 +248,4 @@ WAGTAIL_USER_EDIT_FORM = 'user.wagtail.forms.CustomUserEditForm'
 WAGTAIL_USER_CREATION_FORM = 'user.wagtail.forms.CustomUserCreationForm'
 WAGTAIL_USER_CUSTOM_FIELDS = [
     'email', 'username', 'first_name', 'last_name', 'gender', 'is_staff',
-     'is_active', 'is_verified', 'is_reviewer', 'profile_image', 'bio', 'membership']
+     'is_active', 'is_verified', 'profile_image', 'bio', 'membership']
