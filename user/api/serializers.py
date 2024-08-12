@@ -71,11 +71,16 @@ class UserReadOnlySerializer(UserSerializer):
     safe for storing on the browser.'''
     # custom serializer field
     name = serializers.SerializerMethodField()
+    groups = serializers.SerializerMethodField()
 
     # custom serializer field method to get property
     # syntax: get_<custom serializer field name>
     def get_name(self, object):
         return f'{object.first_name} {object.last_name}'
+    
+    def get_groups(self, object):
+        group_names = list(map(lambda group:group.name,object.groups.all()))
+        return group_names
 
     class Meta:
         model = UserSerializer.Meta.model
