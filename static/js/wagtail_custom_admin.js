@@ -27,39 +27,22 @@ if (
   }
 } else if (window.location.href.includes("/adminreviews")) {
   // Do something if the current URL contains "/adminreviews"
-  // setTimeout(() => {
-  //   const filterButton = document.querySelector(
-  //     "#filters-drilldown > div > button"
-  //   );
-  //   filterButton.click();
-  //   const approvedFilter = document.querySelector(
-  //     "#tippy-3 > div > div > div > div > div.w-drilldown__menu > button"
-  //   );
-  //   approvedFilter.click();
-  //   const radioLabel = document.querySelector(
-  //     "#id_approved > div:nth-child(3) > label"
-  //   );
-  //   radioLabel.click();
-  //   const radioButtonAll = document.querySelector("#id_approved_0");
-  //   const radioButtonYes = document.querySelector("#id_approved_1");
-  //   const unwantedButtons = [radioButtonAll, radioButtonYes];
-  //   unwantedButtons.forEach((btn) => {
-  //     btn.disabled = true;
-  //   });
-  // }, 10);
-  // setTimeout(() => {
-  //   const filterButton = document.querySelector(
-  //     "#filters-drilldown > div > button"
-  //   );
-  //   const approveClearButton = document.querySelector(
-  //     "#listing-results > ul > li > button.w-pill__remove"
-  //   );
-  //   filterButton.click();
-  //   approveClearButton.disabled = true;
-  //   console.log(
-  //     "Set Reviews filter to display only reviews with approved=False"
-  //   );
-  // }, 1000);
+  window.addEventListener("click", () => {
+    // select links with contents: Edit, Inspect, Delete respectively
+    const popupLinks = document.querySelectorAll(".tippy-content div a");
+
+    popupLinks.forEach((link) => {
+      if (link.innerText == "Edit") {
+        let href = link.href.split("/edit");
+        const newHref = href[0].slice(0, -1).replace("admin", "") + href[1];
+        link.href = newHref;
+        link.innerText = "Crosscheck and Approve";
+        link.target = "_blank"; // open in new tab
+      } else if (link.innerText == "Inspect") {
+        link.remove();
+      }
+    });
+  });
 } else if (window.location.href.endsWith("/admin")) {
   // Do something if the current URL ends with "/admin"
   const pendingReviewsLink = document.querySelector(
