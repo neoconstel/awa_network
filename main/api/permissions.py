@@ -56,16 +56,18 @@ class IsCommentAuthorElseReadOnly(permissions.BasePermission):
         return user_permission or request.user.is_staff
 
 
-class IsInReviewersGroupElseReadOnly(permissions.BasePermission):
+class IsEnabledReviewAuthorOrApprovedReadonly(permissions.BasePermission):
     '''The request allows full access if user is in Reviewers group and review 
-    owner, else it only allows read-only access'''
+    owner, else it only allows read-only access (provided that the review is
+    approved) otherwise access isn't granted at all'''
 
     def has_object_permission(self, request, view, obj):
-        # if this is a GET, OPTIONS, or HEAD request
-        if request.method in permissions.SAFE_METHODS:
+        # if this is a GET, OPTIONS, or HEAD request AND review is approved
+        if request.method in permissions.SAFE_METHODS and obj.approved:
             return True
 
         user_permission = request.user and obj.user == request.user \
             and request.user.groups.get(name='Reviewers') != None
-        return user_permission or request.user.is_staff
+        return user_permission or request.user.is_staff \
+                or request.user.is_superuser
     

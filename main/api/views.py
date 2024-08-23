@@ -33,7 +33,7 @@ from django.contrib.auth import authenticate, login
 # permissions
 from .permissions import (IsAuthenticated, IsAuthenticatedElseReadOnly,
 IsArtworkAuthorElseReadOnly,IsArtistUserElseReadOnly,
-IsCommentAuthorElseReadOnly, IsInReviewersGroupElseReadOnly)
+IsCommentAuthorElseReadOnly, IsEnabledReviewAuthorOrApprovedReadonly)
 
 # jwt authentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -644,7 +644,7 @@ class SiteConfigurationsApi(APIView):
 class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                                 generics.GenericAPIView):
 
-    permission_classes = [IsInReviewersGroupElseReadOnly]
+    permission_classes = [IsEnabledReviewAuthorOrApprovedReadonly]
     pagination_class = ReviewPaginationConfig
     ordering = '-id'
 
@@ -761,7 +761,7 @@ class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
 class ReviewDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
                         mixins.DestroyModelMixin, generics.GenericAPIView):
 
-    permission_classes = [IsInReviewersGroupElseReadOnly]
+    permission_classes = [IsEnabledReviewAuthorOrApprovedReadonly]
 
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
