@@ -774,3 +774,16 @@ class ReviewDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
+
+
+class PendingReviews(APIView):
+    '''just return number of unapproved reviews'''
+    permission_classes = []
+
+    def get(self, request):
+        pending_reviews_count = Review.objects.filter(approved=False).count()
+        
+        return Response({
+            'pending_reviews': pending_reviews_count},
+            status=status.HTTP_200_OK)
+    

@@ -27,6 +27,7 @@ urlpatterns = [
 
     path('reviews/', views.ReviewList.as_view(), name='review_list'),
     path('review/<int:pk>/', views.ReviewDetail.as_view(), name='review_detail'),
+    path('reviews/pending/', views.PendingReviews.as_view(), name='pending_reviews'),
     
     
     # wagtail admin custom settings API. It may be a good idea to shift this
