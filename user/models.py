@@ -60,7 +60,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     profile_image = models.ImageField(
         upload_to="profile_pics", null=True, blank=True)
     bio = models.CharField(
-        max_length=500, null=False, default="nothing to see here")
+        max_length=500, null=False, default="Nothing written in bio.")
     membership = models.CharField(max_length=20, null=False, default="Basic")
 
     USERNAME_FIELD = 'email'    
