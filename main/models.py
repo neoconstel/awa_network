@@ -237,6 +237,25 @@ class Following(models.Model):
 
     def __str__(self):
         return f"Following{self.id}: {self.follower} -> {self.following}"
+    
+
+class Genre(models.Model):
+    '''this model was created with Reviews in mind, so that a review of even a
+    non-art subject such as a movie could have a genre. E.g Horror.'''
+
+    name = models.CharField(max_length=50)
+
+    @classmethod
+    def get_default_pk(cls):
+        '''for Review model (and any other model referencing Genre via foreign
+        key) to get a default pk with which to point to Genre'''
+        genre, created = cls.objects.get_or_create(
+            name='Unclassified'
+        )
+        return genre.pk
+
+    def __str__(self):
+        return f"Genre{self.id} | {self.name}"
 
 
 class Review(models.Model):    
@@ -245,6 +264,9 @@ class Review(models.Model):
     title = models.CharField(max_length=100)
     content = models.CharField(max_length=10000)
     category = models.ForeignKey(ArtCategory, on_delete=models.CASCADE)
+    rating = models.FloatField(default=0.0)
+    genre = models.ForeignKey(Genre, default=Genre.get_default_pk, 
+                              on_delete=models.CASCADE)
     tags = models.CharField(max_length=200, blank=True, null=True)
     date_published = models.DateTimeField(default=timezone.now)
     approved = models.BooleanField(default=False)
@@ -268,8 +290,7 @@ class Review(models.Model):
 
 
     def __str__(self):
-        return f"Review{self.id} ({self.title})"
-    
+        return f"Review{self.id} ({self.title})"  
 
 
 
