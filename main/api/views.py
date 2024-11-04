@@ -6,7 +6,8 @@ import random
 # models
 from main.models import (
     Artist, Artwork, File, FileType, FileGroup, ArtCategory, Image, Following,
-    ReactionType, Reaction, ViewLog, Comment, SiteConfigurations, Review)
+    ReactionType, Reaction, ViewLog, Comment, SiteConfigurations, Review,
+    Article)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -15,7 +16,7 @@ from django.db.models import Q
 from .serializers import (
     ArtworkSerializer, ArtistSerializer, ArtCategorySerializer,
     FollowingSerializer, ReactionSerializer, CommentSerializer,
-    ReviewSerializer)
+    ReviewSerializer, ArticleSerializer)
 
 # response / status
 from rest_framework.response import Response
@@ -689,6 +690,156 @@ class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
                 # the uploaded file must be wrapped into a file object
                 wrapped_request_file = DjangoFile(request.FILES['caption_file'])
 
+                caption_file_type = FileType.objects.get(name=data['caption_file_type'])
+                file_group = FileGroup.objects.get(name='reviews')
+            except Exception as e:
+                print(e.args)
+                return Response({'error': 'Failed to process caption file!'},
+                 status=status.HTTP_400_BAD_REQUEST)
+
+            # create (Image or File) FieldFile instance using the file object
+            if caption_file_type.name == 'image':
+                
+                caption_file = Image(
+                    file_group=file_group,resource=wrapped_request_file)
+            else:
+                caption_file = File(
+                    file_type=body_file_type, file_group=file_group,
+                    resource=wrapped_request_file)
+
+            caption_file.save()
+
+            # data["file"] = file
+            data["caption_media_type"] = ContentType.objects.get_for_model(caption_file)
+            data["caption_media_id"] = caption_file.id
+            data["caption_media_object"] = caption_file
+
+
+            # body file processing (some redundant lines ommitted)
+            if request.FILES.get('body_file'):
+                try:            
+                    # the uploaded file must be wrapped into a file object
+                    wrapped_request_file = DjangoFile(request.FILES['body_file'])
+
+                    body_file_type = FileType.objects.get(name=data['body_file_type'])
+                except Exception as e:
+                    print(e.args)
+                    return Response({'error': 'Failed to process body file!'},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+                # create (Image or File) FieldFile instance using the file object
+                if body_file_type.name == 'image':
+                    
+                    body_file = Image(
+                        file_group=file_group,resource=wrapped_request_file)
+                else:
+                    body_file = File(
+                        file_type=body_file_type, file_group=file_group,
+                        resource=wrapped_request_file)
+
+                body_file.save()
+
+                # data["file"] = file
+                data["body_media_type"] = ContentType.objects.get_for_model(body_file)
+                data["body_media_id"] = body_file.id
+                data["body_media_object"] = body_file
+
+            # remove unrelated data from dictionary before creating Artist
+            data.pop('caption_file_type')
+            data.pop('body_file_type')
+
+            review = Review(**data)
+            review.save()
+
+            print("reached this point")
+            output_data = serializer.data
+            output_data["file_url"] = review.caption_media_object.resource.url           
+
+            return Response(output_data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ReviewDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
+                        mixins.DestroyModelMixin, generics.GenericAPIView):
+
+    permission_classes = [IsEnabledReviewAuthorOrApprovedReadonly]
+
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+
+class PendingReviews(APIView):
+    '''just return number of unapproved reviews'''
+    permission_classes = []
+
+    def get(self, request):
+        pending_reviews_count = Review.objects.filter(approved=False).count()
+        
+        return Response({
+            'pending_reviews': pending_reviews_count},
+            status=status.HTTP_200_OK)
+    
+
+class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
+                                                generics.GenericAPIView):
+
+    permission_classes = []
+    # pagination_class = 
+    ordering = '-id'
+
+    serializer_class = ArticleSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return Article.objects.order_by(self.__class__.ordering).all()
+
+    def post(self, request, *args, **kwargs):
+
+        # ensure that user is authenticated and in the 'ArticleCreators' group
+        if not (self.request.user.is_authenticated and \
+                self.request.user.groups.get(name='ArticleCreators') != None):
+            return Response({'error': 'unauthorized to create article'},
+                    status=status.HTTP_401_UNAUTHORIZED)
+        
+
+        # get dictionary equivalent of POST data and add additional data
+        data = request.POST.dict()  # {'title': title, 'content': content,...}
+        data['user'] = self.request.user
+
+        print(f"ORDERED_DICT: {data}\n\n\n")
+
+        serializer = ArticleSerializer(data=data)
+
+        if serializer.is_valid():
+            print("VALID SERIALIZER")
+            print("request.FILES:")
+            print(request.FILES)
+            print("DATA:")
+            print(data)
+
+            print("exiting as per test...")
+            exit()
+
+            # ---FILE PROCESSING---
+
+            # caption file processing
+            try: 
+                data['category'] = ArtCategory.objects.get(id=data['category'])            
+                
+                # the uploaded file must be wrapped into a file object
+                wrapped_request_file = DjangoFile(request.FILES['caption_file'])
+
                 body_file_type = FileType.objects.get(name=data['caption_file_type'])
                 file_group = FileGroup.objects.get(name='reviews')
             except Exception as e:
@@ -756,34 +907,4 @@ class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
 
             return Response(output_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class ReviewDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
-                        mixins.DestroyModelMixin, generics.GenericAPIView):
-
-    permission_classes = [IsEnabledReviewAuthorOrApprovedReadonly]
-
-    queryset = Review.objects.all()
-    serializer_class = ReviewSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
-
-
-class PendingReviews(APIView):
-    '''just return number of unapproved reviews'''
-    permission_classes = []
-
-    def get(self, request):
-        pending_reviews_count = Review.objects.filter(approved=False).count()
-        
-        return Response({
-            'pending_reviews': pending_reviews_count},
-            status=status.HTTP_200_OK)
     

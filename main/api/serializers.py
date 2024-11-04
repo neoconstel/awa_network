@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 # models
 from main.models import (Artwork, Artist, ArtCategory, Following, Reaction,
-ViewLog, Comment, Review)
+ViewLog, Comment, Review, ArticleCategory, Article)
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
@@ -276,5 +276,31 @@ class ReviewSerializer(serializers.ModelSerializer):
             'caption_media_id': {'required': False},
             'body_media_type': {'required': False},
             'body_media_id': {'required': False}
+        }
+        
+
+class ArticleSerializer(serializers.ModelSerializer):
+
+    user = UserReadOnlySerializer(many=False, read_only=True)
+
+    category = serializers.SerializerMethodField() # ArticleCategory
+
+    def get_category(self,object):
+        try:
+            object.pk # object has id.
+        except:
+            return None
+        
+        return object.category.name
+    
+
+    class Meta:
+        model = Article
+        fields = '__all__'
+
+        # html_file is set False because at POST (creation of
+        # Article instance, there isn't yet a file for it)
+        extra_kwargs = {
+            'html_file': {'required': False},
         }
         
