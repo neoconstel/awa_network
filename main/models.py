@@ -119,6 +119,7 @@ class ArtCategory(models.Model):
 
 
 class FileType(models.Model):
+    '''e.g image, video, sound, 3D, project, document, web, other'''
     name = models.CharField(max_length=50)
 
     def __str__(self):
@@ -126,6 +127,8 @@ class FileType(models.Model):
 
 
 class FileGroup(models.Model):
+    '''e.g site_content, user_profile, artist_profile, artworks, 
+                reviews, articles'''
     name = models.CharField(max_length=50)
 
     def __str__(self):
@@ -288,9 +291,31 @@ class Review(models.Model):
     comments = GenericRelation(Comment, related_query_name='comment_review_object',
                     content_type_field='post_type', object_id_field='post_id')
 
+    def __str__(self):
+        return f"Review{self.id} ({self.title})"
+    
+
+class ArticleCategory(models.Model):
+    '''e.g art skills, career, inspiration, news, ads, challenges, updates'''
+    name = models.CharField(max_length=50)
 
     def __str__(self):
-        return f"Review{self.id} ({self.title})"  
+        return f"ArticleCategory{self.id} | {self.name}"
+
+    
+class Article(models.Model):
+    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL,
+                             related_name='articles')
+    title = models.CharField(max_length=100)
+    category = models.ForeignKey(ArticleCategory, on_delete=models.CASCADE)
+    tags = models.CharField(max_length=200, blank=True, null=True)
+    date_published = models.DateTimeField(default=timezone.now)
+    approved = models.BooleanField(default=False)
+    html_file = models.ForeignKey(
+                        File, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Article{self.id} ({self.title})"
 
 
 
