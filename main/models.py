@@ -260,7 +260,7 @@ class Genre(models.Model):
 
 class Review(models.Model):    
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='user')
+        User, on_delete=models.CASCADE, related_name='reviews')
     title = models.CharField(max_length=100)
     content = models.CharField(max_length=10000)
     category = models.ForeignKey(ArtCategory, on_delete=models.CASCADE)
