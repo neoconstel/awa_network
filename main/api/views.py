@@ -672,14 +672,17 @@ class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
 
         # print(f"ORDERED_DICT: {data}\n\n\n")
 
-        serializer = ReviewSerializer(data=data)
+        # first serializer. Only the none-file fields are enforced in the
+        # serializer class, so that the file is created only after the 
+        # validation of the none-file data
+        review_data_serializer = ReviewSerializer(data=data)
 
-        if serializer.is_valid():
-            print("VALID SERIALIZER")
-            print("request.FILES:")
-            print(request.FILES)
-            print("DATA:")
-            print(data)
+        if review_data_serializer.is_valid():
+            # print("VALID SERIALIZER")
+            # print("request.FILES:")
+            # print(request.FILES)
+            # print("DATA:")
+            # print(data)
 
             # ---FILE PROCESSING---
 
@@ -690,7 +693,10 @@ class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
                 # the uploaded file must be wrapped into a file object
                 wrapped_request_file = DjangoFile(request.FILES['caption_file'])
 
-                caption_file_type = FileType.objects.get(name=data['caption_file_type'])
+                # read and immediately discard of the 'caption_file_type' entry
+                # as it shouldn't be present when the data list is used to
+                # create a Review object via Review(**data)
+                caption_file_type = FileType.objects.get(name=data.pop('caption_file_type'))
                 file_group = FileGroup.objects.get(name='reviews')
             except Exception as e:
                 print(e.args)
@@ -721,7 +727,10 @@ class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
                     # the uploaded file must be wrapped into a file object
                     wrapped_request_file = DjangoFile(request.FILES['body_file'])
 
-                    body_file_type = FileType.objects.get(name=data['body_file_type'])
+                    # read and immediately discard of the 'body_file_type' entry
+                    # as it shouldn't be present when the data list is used to
+                    # create a Review object via Review(**data)
+                    body_file_type = FileType.objects.get(name=data.pop('body_file_type'))
                 except Exception as e:
                     print(e.args)
                     return Response({'error': 'Failed to process body file!'},
@@ -744,19 +753,18 @@ class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
                 data["body_media_id"] = body_file.id
                 data["body_media_object"] = body_file
 
-            # remove unrelated data from dictionary before creating Artist
-            data.pop('caption_file_type')
-            data.pop('body_file_type')
-
+            # creating Artist from data list, as all 'non-model' entries have
+            # been popped out and used
             review = Review(**data)
             review.save()
 
-            print("reached this point")
-            output_data = serializer.data
-            output_data["file_url"] = review.caption_media_object.resource.url           
+            # now the review has been created, extra info such as the instance
+            # id and the IDs/url paths of its files are present. So we create
+            # a second serializer to capture all these info.
+            review_instance_serializer = ReviewSerializer(review)           
 
-            return Response(output_data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(review_instance_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(review_data_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ReviewDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
