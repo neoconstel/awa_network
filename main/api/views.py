@@ -844,10 +844,7 @@ class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
                 # the uploaded file must be wrapped into a file object
                 wrapped_request_file = DjangoFile(request.FILES['file'])
 
-                # read and immediately discard of the 'file_type' entry
-                # as it shouldn't be present when the data list is used to
-                # create an Article object via Article(**data)
-                file_type = FileType.objects.get(name=data.pop('file_type'))
+                file_type = FileType.objects.get(name='web')
                 file_group = FileGroup.objects.get(name='articles')
             except Exception as e:
                 print(e.args)
