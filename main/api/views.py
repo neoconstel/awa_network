@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 import json
 from django.conf import settings
 import random
+import io
 
 # models
 from main.models import (
@@ -825,7 +826,7 @@ class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
         data = request.POST.dict()  # {'title': title, 'content': content,...}
         data['user'] = self.request.user
 
-        print(f"ORDERED_DICT: {data}\n\n\n")
+        # print(f"ORDERED_DICT: {data}\n\n\n")
 
         serializer = ArticleSerializer(data=data)
 
@@ -841,8 +842,12 @@ class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
             try: 
                 data['category'] = ArticleCategory.objects.get(id=data['category'])            
                 
-                # the uploaded file must be wrapped into a file object
-                wrapped_request_file = DjangoFile(request.FILES['file'])
+                # html content will be used to create an in-memory file, which
+                # is then wrapped into a file object
+                html = data.pop('html')
+                in_memory_file = io.StringIO(html)
+                in_memory_file.name = data["title"] # file must have name
+                wrapped_in_memory_file = DjangoFile(in_memory_file)                
 
                 file_type = FileType.objects.get(name='web')
                 file_group = FileGroup.objects.get(name='articles')
@@ -854,14 +859,14 @@ class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
             # create FieldFile instance using the file object            
             file = File(
                     file_type=file_type, file_group=file_group,
-                    resource=wrapped_request_file)
+                    resource=wrapped_in_memory_file)
             file.save()
 
             data["html_file"] = file
 
             article = Article(**data)
             article.save()
-
+            
             article_instance_serializer = ArticleSerializer(article)                      
 
             return Response(article_instance_serializer.data,

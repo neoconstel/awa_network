@@ -285,6 +285,9 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     category = serializers.SerializerMethodField() # ArticleCategory
 
+    # write_only so that an instance can be serialized without this field
+    html = serializers.CharField(write_only=True)
+
     def get_category(self,object):
         try:
             object.pk # object has id.
@@ -298,9 +301,12 @@ class ArticleSerializer(serializers.ModelSerializer):
         model = Article
         fields = '__all__'
 
-        # html_file is set False because at POST (creation of
-        # Article instance, there isn't yet a file for it)
+        # html_file 'required' is set False because at POST (creation of
+        # Article instance, there isn't yet a file for it).
+        # HOWEVER, for html it is set to True because it carries the html
+        # content which is needed to create the html file.
         extra_kwargs = {
             'html_file': {'required': False},
+            'html': {'required': True},
         }
         
