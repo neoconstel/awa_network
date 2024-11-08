@@ -307,7 +307,7 @@ class Article(models.Model):
     user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL,
                              related_name='articles')
     title = models.CharField(max_length=100)
-    category = models.ForeignKey(ArticleCategory, on_delete=models.CASCADE)
+    categories = models.CharField(max_length=100)
     tags = models.CharField(max_length=200, blank=True, null=True)
     date_published = models.DateTimeField(default=timezone.now)
     approved = models.BooleanField(default=False)

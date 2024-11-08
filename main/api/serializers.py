@@ -283,20 +283,9 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     user = UserReadOnlySerializer(many=False, read_only=True)
 
-    category = serializers.SerializerMethodField() # ArticleCategory
-
     # write_only so that an instance can be serialized without this field
     html = serializers.CharField(write_only=True)
-
-    def get_category(self,object):
-        try:
-            object.pk # object has id.
-        except:
-            return None
-        
-        return object.category.name
     
-
     class Meta:
         model = Article
         fields = '__all__'

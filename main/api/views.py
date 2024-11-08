@@ -840,9 +840,7 @@ class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
 
             # ---FILE PROCESSING---
 
-            try: 
-                data['category'] = ArticleCategory.objects.get(id=data['category'])            
-                
+            try:         
                 # html content will be used to create an in-memory file, which
                 # is then wrapped into a file object
                 html = data.pop('html')
