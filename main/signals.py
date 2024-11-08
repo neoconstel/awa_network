@@ -10,7 +10,7 @@ new_following = django.dispatch.Signal()
 from django.dispatch import receiver
 
 # models
-from .models import User, Artist, Artwork, File, Image, Review
+from .models import User, Artist, Artwork, File, Image, Review, Article
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -99,3 +99,15 @@ def review_listener(sender, **kwargs):
         body_media_object.delete()
 
     # print(f'\n\n\nEXECUTED SIGNAL:  review deleted\n\n\n')
+
+
+# -------Article-------
+@receiver(post_delete, sender=Article, dispatch_uid='article-uid')
+def article_listener(sender, **kwargs):
+    model_instance = kwargs.get('instance')
+    
+    # delete attached file instance
+    model_instance.html_file.delete()
+
+    # print(f'\n\n\nEXECUTED SIGNAL:  article deleted\n\n\n')
+    

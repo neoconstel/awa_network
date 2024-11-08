@@ -846,7 +846,7 @@ class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
                 # is then wrapped into a file object
                 html = data.pop('html')
                 in_memory_file = io.StringIO(html)
-                in_memory_file.name = data["title"] # file must have name
+                in_memory_file.name = data["title"] + ".html" # file must have name
                 wrapped_in_memory_file = DjangoFile(in_memory_file)                
 
                 file_type = FileType.objects.get(name='web')
@@ -866,7 +866,7 @@ class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
 
             article = Article(**data)
             article.save()
-            
+
             article_instance_serializer = ArticleSerializer(article)                      
 
             return Response(article_instance_serializer.data,
