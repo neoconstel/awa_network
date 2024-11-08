@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 import json
+import time
 from django.conf import settings
 import random
 import io
@@ -846,7 +847,8 @@ class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
                 # is then wrapped into a file object
                 html = data.pop('html')
                 in_memory_file = io.StringIO(html)
-                in_memory_file.name = data["title"] + ".html" # file must have name
+                in_memory_file.name = \
+                    f"article{time.time()}.html" # file must have a name
                 wrapped_in_memory_file = DjangoFile(in_memory_file)                
 
                 file_type = FileType.objects.get(name='web')
@@ -886,6 +888,17 @@ class ArticleDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
+        # get the request items in the form of a normal dictionaey
+        data = request.POST.dict()
+
+        article = Article.objects.get(id=kwargs['pk'])
+
+        # write the updated html content to the html file
+        file_stream = article.html_file.resource
+        file_stream.open('w')
+        file_stream.write(data['html'])
+        file_stream.close()
+
         return self.update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
