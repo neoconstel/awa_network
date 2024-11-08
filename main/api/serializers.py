@@ -285,6 +285,16 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     # write_only so that an instance can be serialized without this field
     html = serializers.CharField(write_only=True)
+
+    html_url = serializers.SerializerMethodField()
+
+    def get_html_url(self,object):
+        try:
+            object.pk # object has id.
+        except:
+            return None
+        
+        return object.html_file.resource.url
     
     class Meta:
         model = Article
