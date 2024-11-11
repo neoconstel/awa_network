@@ -313,6 +313,7 @@ class Article(models.Model):
     approved = models.BooleanField(default=False)
     html_file = models.ForeignKey(
                         File, on_delete=models.CASCADE)
+    html_images = models.JSONField(default=dict)
 
     def __str__(self):
         return f"Article{self.id} ({self.title})"
