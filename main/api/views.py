@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect
 import json
 import time
 from django.conf import settings
+from bs4 import BeautifulSoup
 import random
-import io
 
 # models
 from main.models import (
@@ -43,6 +43,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from user.api.views import get_jwt_access_tokens_for_user
 
 # File handling
+import io
 from django.core.files import File as DjangoFile
 
 # pagination
@@ -838,12 +839,54 @@ class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
             # print("DATA:")
             # print(data)
 
-            # ---FILE PROCESSING---
 
-            try:         
-                # html content will be used to create an in-memory file, which
-                # is then wrapped into a file object
-                html = data.pop('html')
+            # ---FILE PROCESSING---           
+            html = data.pop('html')
+
+            # process the html images
+            html_soup = BeautifulSoup(html, 'html.parser')            
+            src_id_mapping = {}
+
+            # goals:
+            # - for each blob img element, create image file
+            # - update its src with the file URL
+            # - store src_id mapping in database
+            for img in html_soup.find_all('img'):
+                src = img.get('src')
+
+                # skip non-blob img elements
+                if not src.startswith('blob:'):
+                    continue             
+
+                try:           
+                    # wrap request file into a file object
+                    request_file = request.FILES[src]
+                    wrapped_request_file = DjangoFile(request_file)
+
+                    file_group = FileGroup.objects.get(name='articles')
+                except Exception as e:
+                    print(e.args)
+                    return Response({'error': 'Failed to process article image!'},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+                # create Image instance
+                article_image_file = Image(
+                        file_group=file_group,resource=wrapped_request_file)
+
+                article_image_file.save()
+
+                # update src and get src_id mapping
+                img['src'] = article_image_file.resource.url
+                src_id_mapping[img['src']] = article_image_file.id
+            
+            # update html with processed src urls
+            html = str(html_soup)
+
+
+            # process the html file
+            # html content will be used to create an in-memory file, which
+            # is then wrapped into a file object
+            try:
                 in_memory_file = io.StringIO(html)
                 in_memory_file.name = \
                     f"article{time.time()}.html" # file must have a name
@@ -857,12 +900,15 @@ class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
                  status=status.HTTP_400_BAD_REQUEST)
 
             # create FieldFile instance using the file object            
-            file = File(
+            html_file = File(
                     file_type=file_type, file_group=file_group,
                     resource=wrapped_in_memory_file)
-            file.save()
+            html_file.save()            
 
-            data["html_file"] = file
+            #----------------------------------------
+
+            data["html_file"] = html_file
+            data["html_images"] = src_id_mapping
 
             article = Article(**data)
             article.save()
