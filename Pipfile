@@ -18,6 +18,7 @@ django-rest-framework-multi-slug-field = "*"
 wagtail = "*"
 whitenoise = "*"
 ipython = "*"
+beautifulsoup4 = "*"
 
 [dev-packages]
 
