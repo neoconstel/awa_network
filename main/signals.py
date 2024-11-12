@@ -106,8 +106,13 @@ def review_listener(sender, **kwargs):
 def article_listener(sender, **kwargs):
     model_instance = kwargs.get('instance')
     
-    # delete attached file instance
+    # delete attached html file instance
     model_instance.html_file.delete()
+
+    # delete attached article images (based on the src_id mapping)
+    article_images_ids = model_instance.html_images.values()
+    article_images_query = Image.objects.filter(id__in=article_images_ids)
+    article_images_query.delete()
 
     # print(f'\n\n\nEXECUTED SIGNAL:  article deleted\n\n\n')
     
