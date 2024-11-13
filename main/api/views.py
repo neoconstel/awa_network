@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 import json
 import time
 from django.conf import settings
-from bs4 import BeautifulSoup
 import random
 
 # models
@@ -45,6 +44,10 @@ from user.api.views import get_jwt_access_tokens_for_user
 # File handling
 import io
 from django.core.files import File as DjangoFile
+
+# web/html parsing
+from bs4 import BeautifulSoup
+from urllib.parse import urlparse
 
 # pagination
 from .pagination import (ArtworkPaginationConfig, ArtistPaginationConfig,
@@ -851,6 +854,8 @@ class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
             # - for each blob img element, create image file
             # - update its src with the file URL
             # - store src_id mapping in database
+            # NOTE: keep the URLs (in html file and src_id mapping) RELATIVE, 
+            # for ease of management in case project media_url changes
             for img in html_soup.find_all('img'):
                 src = img.get('src')
 
@@ -932,15 +937,77 @@ class ArticleDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
+        # DIAGNOSIS ONLY
+        # print(f"\nrequest: {request}")
+        # print(f"\nargs: {args}")
+        # print(f"\nkwargs: {kwargs}")
+        # return Response({'test': 'ok'})
+
         # get the request items in the form of a normal dictionaey
         data = request.POST.dict()
 
         article = Article.objects.get(id=kwargs['pk'])
+        html = data['html']
+
+        # process the html images
+        html_soup = BeautifulSoup(html, 'html.parser')            
+        src_id_mapping = article.html_images
+
+        # goals:
+        # - for each src in src_id mapping, if there is no img element in
+            # new html having matching url, delete the image instance
+            # and remove it from the src_id mapping
+            # NOTE: keep the URLs (in html file and src_id mapping) RELATIVE, 
+            # for ease of management in case project media_url changes
+        # - for each blob img element,
+            # - create image file
+            # - update its src with the file URL
+            # - store src_id mapping in database
+
+
+        # delete any existing image instance no longer referenced in the HTML
+        for src, id in src_id_mapping.items():
+            if not html_soup.find(name='img', src=src):
+                Image.objects.get(id=id).delete()
+                del src_id_mapping[src]            
+
+
+        for img in html_soup.find_all('img'):
+            src = img.get('src')
+
+            # skip non-blob img elements
+            if not src.startswith('blob:'):
+                continue             
+
+            try:           
+                # wrap request file into a file object
+                request_file = request.FILES[src]
+                wrapped_request_file = DjangoFile(request_file)
+
+                file_group = FileGroup.objects.get(name='articles')
+            except Exception as e:
+                print(e.args)
+                return Response({'error': 'Failed to process article image!'},
+                status=status.HTTP_400_BAD_REQUEST)
+
+            # create Image instance
+            article_image_file = Image(
+                    file_group=file_group,resource=wrapped_request_file)
+
+            article_image_file.save()
+
+            # update src and get src_id mapping
+            img['src'] = article_image_file.resource.url
+            src_id_mapping[img['src']] = article_image_file.id
+            article.html_images = src_id_mapping
+            article.save() #this rather be handled by self.update
+
+        # -----------------------------------------------------
 
         # write the updated html content to the html file
         file_stream = article.html_file.resource
         file_stream.open('w')
-        file_stream.write(data['html'])
+        file_stream.write(str(html_soup))
         file_stream.close()
 
         return self.update(request, *args, **kwargs)
