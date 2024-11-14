@@ -314,6 +314,8 @@ class Article(models.Model):
     html_file = models.ForeignKey(
                         File, on_delete=models.CASCADE)
     html_images = models.JSONField(default=dict)
+    thumbnail_image = models.ForeignKey(Image, null=True,
+                                        on_delete=models.SET_NULL)
 
     def __str__(self):
         return f"Article{self.id} ({self.title})"

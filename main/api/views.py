@@ -851,9 +851,11 @@ class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
             src_id_mapping = {}
 
             # goals:
-            # - for each blob img element, create image file
-            # - update its src with the file URL
-            # - store src_id mapping in database
+            # - for each blob img element,
+                # - create image file
+                # - update its src with the file URL
+                # - store src_id mapping in database
+                # - set it as thumbnail_image if it's the first blob img
             # NOTE: keep the URLs (in html file and src_id mapping) RELATIVE, 
             # for ease of management in case project media_url changes
             for img in html_soup.find_all('img'):
@@ -883,6 +885,10 @@ class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
                 # update src and get src_id mapping
                 img['src'] = article_image_file.resource.url
                 src_id_mapping[img['src']] = article_image_file.id
+
+                # set it as thumbnail_image if it's the first blob img
+                if not data.get('thumbnail_image'):
+                    data['thumbnail_image'] = article_image_file
             
             # update html with processed src urls
             html = str(html_soup)
@@ -954,15 +960,18 @@ class ArticleDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
         src_id_mapping = article.html_images
 
         # goals:
-        # - for each src in src_id mapping, if there is no img element in
-            # new html having matching url, delete the image instance
-            # and remove it from the src_id mapping
+        # - for each src in src_id mapping,
+            # if there is no img element in
+                    # new html having matching src, delete the image instance
+                    # and remove it from the src_id mapping
             # NOTE: keep the URLs (in html file and src_id mapping) RELATIVE, 
             # for ease of management in case project media_url changes
         # - for each blob img element,
             # - create image file
             # - update its src with the file URL
             # - store src_id mapping in database
+        # - get first img in html SOUP, get the Image instance having matching
+            # src, and set it as thumbnail_image
 
 
         # delete any existing image instance no longer referenced in the HTML
@@ -1000,7 +1009,14 @@ class ArticleDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
             img['src'] = article_image_file.resource.url
             src_id_mapping[img['src']] = article_image_file.id
             article.html_images = src_id_mapping
-            article.save() #this rather be handled by self.update
+
+            # set first img as thumbnail_image (using updated src_id mapping)
+            first_soup_img = html_soup.find('img')
+            first_soup_img_id = src_id_mapping[first_soup_img.get('src')]
+            first_soup_img_instance = Image.objects.get(id=first_soup_img_id)
+            article.thumbnail_image = first_soup_img_instance
+
+            article.save()
 
         # -----------------------------------------------------
 
