@@ -52,7 +52,7 @@ from urllib.parse import urlparse
 # pagination
 from .pagination import (ArtworkPaginationConfig, ArtistPaginationConfig,
 FollowPaginationConfig, ReactionPaginationConfig, CommentPaginationConfig,
-ReviewPaginationConfig)
+ReviewPaginationConfig, ArticlePaginationConfig)
 
 
 class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -806,8 +806,8 @@ class PendingReviews(APIView):
 class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                                 generics.GenericAPIView):
 
-    permission_classes = []
-    # pagination_class = 
+    permission_classes = [] # TODO: add permission
+    pagination_class = ArticlePaginationConfig
     ordering = '-id'
 
     serializer_class = ArticleSerializer
