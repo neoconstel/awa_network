@@ -283,10 +283,13 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     user = UserReadOnlySerializer(many=False, read_only=True)
 
-    # write_only so that an instance can be serialized without this field
+    # write_only so that an instance can be serialized without this field,
+    # even though it has been set as {required: True} in kwargs
     html = serializers.CharField(write_only=True)
 
     html_url = serializers.SerializerMethodField()
+
+    thumbnail_url = serializers.SerializerMethodField()
 
     def get_html_url(self,object):
         try:
@@ -295,6 +298,14 @@ class ArticleSerializer(serializers.ModelSerializer):
             return None
         
         return object.html_file.resource.url
+    
+    def get_thumbnail_url(self,object):
+        try:
+            object.pk # object has id.
+        except:
+            return None
+        
+        return object.thumbnail_image.resource.url
     
     class Meta:
         model = Article
