@@ -14,7 +14,7 @@ class IsAdminElseReadOnly(permissions.IsAdminUser):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        admin_permission = request.user and request.user.is_staff
+        admin_permission = request.user and request.user.is_superuser
         return admin_permission
 
 
@@ -28,7 +28,7 @@ class IsArtworkAuthorElseReadOnly(permissions.BasePermission):
             return True
 
         user_permission = request.user and obj.artist.user == request.user
-        return user_permission or request.user.is_staff
+        return user_permission or request.user.is_superuser
 
 
 class IsArtistUserElseReadOnly(permissions.BasePermission):
@@ -41,7 +41,7 @@ class IsArtistUserElseReadOnly(permissions.BasePermission):
             return True
 
         user_permission = request.user and obj.user == request.user
-        return user_permission or request.user.is_staff
+        return user_permission or request.user.is_superuser
         
 
 class IsCommentAuthorElseReadOnly(permissions.BasePermission):
@@ -53,8 +53,8 @@ class IsCommentAuthorElseReadOnly(permissions.BasePermission):
             return True
 
         user_permission = request.user and obj.user == request.user
-        return user_permission or request.user.is_staff
-
+        return user_permission or request.user.is_superuser
+    
 
 class IsEnabledReviewAuthorOrApprovedReadonly(permissions.BasePermission):
     '''The request allows full access if user is in Reviewers group and review 
@@ -67,7 +67,6 @@ class IsEnabledReviewAuthorOrApprovedReadonly(permissions.BasePermission):
             return True
 
         user_permission = request.user and obj.user == request.user \
-            and request.user.groups.get(name='Reviewers') != None
-        return user_permission or request.user.is_staff \
-                or request.user.is_superuser
+            and request.user.groups.filter(name='Reviewers').first() != None
+        return user_permission or request.user.is_superuser
     
