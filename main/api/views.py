@@ -35,7 +35,8 @@ from django.contrib.auth import authenticate, login
 # permissions
 from .permissions import (IsAuthenticated, IsAuthenticatedElseReadOnly,
 IsArtworkAuthorElseReadOnly,IsArtistUserElseReadOnly,
-IsCommentAuthorElseReadOnly, IsEnabledReviewAuthorOrApprovedReadonly)
+IsCommentAuthorElseReadOnly, IsEnabledReviewAuthorOrApprovedReadonly,
+IsEnabledReviewerOrApprovedReadonly)
 
 # jwt authentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -651,7 +652,7 @@ class SiteConfigurationsApi(APIView):
 class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                                 generics.GenericAPIView):
 
-    permission_classes = [IsEnabledReviewAuthorOrApprovedReadonly]
+    permission_classes = [IsEnabledReviewerOrApprovedReadonly]
     pagination_class = ReviewPaginationConfig
     ordering = '-id'
 
@@ -663,15 +664,7 @@ class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
     def get_queryset(self):
         return Review.objects.order_by(self.__class__.ordering).filter(approved=True).all()
 
-    def post(self, request, *args, **kwargs):
-
-        # ensure that user is authenticated and in the 'Reviewers' group
-        if not (self.request.user.is_authenticated and \
-                self.request.user.groups.get(name='Reviewers') != None):
-            return Response({'error': 'unauthorized to make review'},
-                    status=status.HTTP_401_UNAUTHORIZED)
-        
-
+    def post(self, request, *args, **kwargs):        
         # get dictionary equivalent of POST data and add additional data
         data = request.POST.dict()  # {'title': title, 'content': content,...}
         data['user'] = self.request.user
