@@ -35,8 +35,11 @@ from django.contrib.auth import authenticate, login
 # permissions
 from .permissions import (IsAuthenticated, IsAuthenticatedElseReadOnly,
 IsArtworkAuthorElseReadOnly,IsArtistUserElseReadOnly,
-IsCommentAuthorElseReadOnly, IsEnabledReviewAuthorOrApprovedReadonly,
-IsEnabledReviewerOrApprovedReadonly)
+IsCommentAuthorElseReadOnly,
+IsReviewersGroupMemberAndReviewAuthorOrApprovedReadonly,
+IsReviewersGroupMemberOrApprovedReadonly,
+IsArticleCreatorsGroupMemberOrApprovedReadonly,
+IsArticleCreatorsGroupMemberOrReadonly)
 
 # jwt authentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -652,7 +655,7 @@ class SiteConfigurationsApi(APIView):
 class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                                 generics.GenericAPIView):
 
-    permission_classes = [IsEnabledReviewerOrApprovedReadonly]
+    permission_classes = [IsReviewersGroupMemberOrApprovedReadonly]
     pagination_class = ReviewPaginationConfig
     ordering = '-id'
 
@@ -769,7 +772,7 @@ class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin,
 class ReviewDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
                         mixins.DestroyModelMixin, generics.GenericAPIView):
 
-    permission_classes = [IsEnabledReviewAuthorOrApprovedReadonly]
+    permission_classes = [IsReviewersGroupMemberAndReviewAuthorOrApprovedReadonly]
 
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
@@ -799,7 +802,8 @@ class PendingReviews(APIView):
 class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                                 generics.GenericAPIView):
 
-    permission_classes = [] # TODO: add permission
+    # TODO: CHANGE THIS permission back to the one with 'ApprovedReadonly
+    permission_classes = [IsArticleCreatorsGroupMemberOrReadonly] # [IsArticleCreatorsGroupMemberOrApprovedReadonly]
     pagination_class = ArticlePaginationConfig
     ordering = '-id'
 
@@ -811,15 +815,7 @@ class ArticleList(mixins.ListModelMixin, mixins.CreateModelMixin,
     def get_queryset(self):
         return Article.objects.order_by(self.__class__.ordering).all()
 
-    def post(self, request, *args, **kwargs):
-
-        # ensure that user is authenticated and in the 'ArticleCreators' group
-        if not (self.request.user.is_authenticated and \
-                self.request.user.groups.get(name='ArticleCreators') != None):
-            return Response({'error': 'unauthorized to create article'},
-                    status=status.HTTP_401_UNAUTHORIZED)
-        
-
+    def post(self, request, *args, **kwargs):       
         # get dictionary equivalent of POST data and add additional data
         data = request.POST.dict()  # {'title': title, 'content': content,...}
         data['user'] = self.request.user
