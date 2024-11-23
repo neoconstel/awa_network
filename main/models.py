@@ -116,6 +116,9 @@ class ArtCategory(models.Model):
 
     def __str__(self):
         return f"ArtCategory{self.id} | {self.name}"
+    
+    class Meta:
+        verbose_name_plural = "Art Categories"
 
 
 class FileType(models.Model):
@@ -301,6 +304,9 @@ class ArticleCategory(models.Model):
 
     def __str__(self):
         return f"ArticleCategory{self.id} | {self.name}"
+    
+    class Meta:
+        verbose_name_plural = "Article Categories"
 
     
 class Article(models.Model):
@@ -319,10 +325,87 @@ class Article(models.Model):
 
     def __str__(self):
         return f"Article{self.id} ({self.title})"
+    
+
+class Seller(models.Model):
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='seller')
+
+    def __str__(self):
+        return f"Seller{self.id} | {self.user.username}"
+    
+
+class ProductCategory(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"ProductCategory{self.id} | {self.name}"
+    
+    class Meta:
+        verbose_name_plural = "Product Categories"
+    
+
+class ProductLicense(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"ProductLicense{self.id} | {self.name}"
+
+
+class ProductRating(models.Model):
+    user = models.ForeignKey(User, null=True, blank=True,
+                                        on_delete=models.SET_NULL)
+    user_rating = models.SmallIntegerField(default=0)
+
+    def __str__(self):
+        return f"ProductRating{self.id} | {self.user_rating}" 
+
+
+class Product(models.Model):
+    seller = models.ForeignKey(
+        Seller, on_delete=models.CASCADE, related_name='products')
+    title = models.CharField(max_length=100)
+    category = models.ForeignKey(ProductCategory, on_delete=models.CASCADE)
+    user_ratings = models.ForeignKey(ProductRating, null=True, 
+                                     on_delete=models.SET_NULL)
+    is_mature = models.BooleanField(default=False)
+    price = models.PositiveSmallIntegerField(default=0)
+    thumbnail_images = models.JSONField(default=dict)
+    description = models.TextField()
+    tags = models.CharField(max_length=200, blank=True, null=True)
+    date_published = models.DateTimeField(default=timezone.now)
+    licenses = models.ManyToManyField(ProductLicense, related_name='products',
+                                      through='ProductXProductlicense')
+
+    '''generic related fields for reverse quering (many to many behaviour)
+    note that in the case of <comments>, which is of the Comment model (where
+    a custom content_type/object_id field name has been used, we now specify)
+    the custom field names (for the COMMENT model) in the GenericRelation
+    we are creating in the THIS (Product) model'''
+    views = GenericRelation(ViewLog, related_query_name='viewlog_product_object')
+    comments = GenericRelation(Comment, related_query_name='comment_product_object',
+                    content_type_field='post_type', object_id_field='post_id')
+
+    
+    def __str__(self):
+        return f"Product{self.id} | {self.title}"
+    
+
+class ProductXProductlicense(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product_license = models.ForeignKey(ProductLicense,
+                                                on_delete=models.CASCADE)    
+
+    def __str__(self):
+        return f"ProductXProductlicense{self.id} | {self.product.id} X {self.product_license.id}"
+    
+
+    
 
 
 
-# execute this part only from models.py in the 'main' app
+
+#--------- execute this part only from models.py in the 'main' app-------------
 if __name__ == 'main.models':
     # import wagtail page models
     from .page_models import *
