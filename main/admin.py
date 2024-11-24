@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import (Artist, FileType, File, Artwork, Following, ArtCategory,
 FileGroup, Image, ReactionType, Reaction, ViewLog, Comment, Review, Genre,
 ArticleCategory, Article, Seller, ProductCategory, ProductLicense,
-ProductRating, Product, ProductXProductlicense)
+ProductRating, Product, ProductXProductlicense, ProductXImage)
 
 # wagtail
 from .models import Page
@@ -43,6 +43,7 @@ admin.site.register(ProductLicense)
 admin.site.register(ProductRating)
 admin.site.register(Product)
 admin.site.register(ProductXProductlicense)
+admin.site.register(ProductXImage)
 
 
 # wagtail

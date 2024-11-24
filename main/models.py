@@ -1,5 +1,7 @@
 '''TODO:
     - convert all Interger primary keys to BigInteger fields (UUID where possible)
+    - set model validator constraints on all fields prone to referencial 
+    integrity compromise (such as GenericForeignKey fields and JSONFields)
 '''
 
 
@@ -330,6 +332,11 @@ class Article(models.Model):
 class Seller(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='seller')
+    alias = models.CharField(max_length=50, unique=True)
+    brand_name = models.CharField(max_length=50)
+
+    
+
 
     def __str__(self):
         return f"Seller{self.id} | {self.user.username}"
@@ -370,7 +377,7 @@ class Product(models.Model):
                                      on_delete=models.SET_NULL)
     is_mature = models.BooleanField(default=False)
     price = models.PositiveSmallIntegerField(default=0)
-    thumbnail_images = models.JSONField(default=dict)
+    thumbnail_images = models.ManyToManyField(Image, through='ProductXImage')
     description = models.TextField()
     tags = models.CharField(max_length=200, blank=True, null=True)
     date_published = models.DateTimeField(default=timezone.now)
@@ -392,14 +399,32 @@ class Product(models.Model):
     
 
 class ProductXProductlicense(models.Model):
+    '''custom "through" table for Product and ProductLicense
+            ManyToManyRelationship'''
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     product_license = models.ForeignKey(ProductLicense,
                                                 on_delete=models.CASCADE)    
 
     def __str__(self):
-        return f"ProductXProductlicense{self.id} | {self.product.id} X {self.product_license.id}"
+        return f"ProductXProductlicense{self.id} | \
+            {self.product.id} X {self.product_license.id}"
+
+    class Meta:
+        verbose_name_plural = "Product X ProductLicense"
     
 
+class ProductXImage(models.Model):
+    '''custom "through" table for Product and Images
+            ManyToManyRelationship'''
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    image = models.ForeignKey(Image, on_delete=models.CASCADE)    
+
+    def __str__(self):
+        return f"ProductXImage{self.id} | \
+            {self.product.id} X {self.image.id}"
+    
+    class Meta:
+        verbose_name_plural = "Product X Image"
     
 
 
