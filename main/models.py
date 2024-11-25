@@ -367,6 +367,23 @@ class ProductCategory(models.Model):
             return  f"{self.parent.parent_tree(url)}/{slugify(self.name)}"
         else:
             return f"{self.parent.parent_tree(url)} -> {self.name}"
+        
+    def cyclic_test(self, initiator):
+        '''check if it has been set as descendant of its descendant. Return 
+        true if the check passes (not set as child of its descendant).
+        Return False if it fails (is cyclic: meaning it is set as a descendant
+        of its descendant)
+
+        - initiator: this category instance e.g ctgr1.cyclic_test(ctgr1)
+        '''
+        
+        if self.parent == None or self.id == None:
+            return True
+        elif self.parent.id == initiator.id:
+            return False
+        else:
+            return self.parent.cyclic_test(initiator=initiator)      
+        
 
     def __str__(self):
         return f"ProductCategory{self.id} | {self.parent_tree(url=True)}"
@@ -374,10 +391,20 @@ class ProductCategory(models.Model):
     def clean(self, *args, **kwargs):
         '''clean() is automatically used in forms, not in the save() method 
         except if it is manually called'''
+
+        # check for duplicate category
         duplicate_category = ProductCategory.objects.filter(
             parent=self.parent, name=self.name).first()
-        if duplicate_category:
+        if duplicate_category and self.id != duplicate_category.id:
             raise ValidationError("Duplicate Category")
+        
+
+        # check for cyclic connection (if set as descendant of its descendant)
+        if not self.cyclic_test(self):
+            raise ValidationError("Forbidden: cannot set category as \
+                                  descendant of its descendant.")
+
+
         super(ProductCategory, self).clean(*args, **kwargs)
     
     def save(self, *args, **kwargs):
