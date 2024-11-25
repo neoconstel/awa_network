@@ -144,7 +144,7 @@ class MagazinePage(BasePage):
     max_count = 1
 
 
-class FoundationPage(BasePage):
+class ResourcesPage(BasePage):
     parent_page_types = ['main.HomePage']
     max_count = 1
 
