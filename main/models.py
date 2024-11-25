@@ -344,10 +344,31 @@ class Seller(models.Model):
 
 class ProductCategory(models.Model):
     name = models.CharField(max_length=50)
-    sub_categories = models.TextField()
+    parent = models.ForeignKey('self',
+                               on_delete=models.CASCADE, null=True, blank=True)
+    
+    def parent_tree(self):
+        if self.parent == None:
+            return f"{self.name}"
+        else:
+            return f"{self.parent.parent_tree()} -> {self.name}"
 
     def __str__(self):
-        return f"ProductCategory{self.id} | {self.name}"
+        return f"ProductCategory{self.id} | {self.parent_tree()}"
+    
+    def clean(self, *args, **kwargs):
+        '''clean() is automatically used in forms, not in the save() method 
+        except if it is manually called'''
+        duplicate_category = ProductCategory.objects.filter(
+            parent=self.parent, name=self.name).first()
+        if duplicate_category:
+            raise ValidationError("Duplicate Category")
+        super(ProductCategory, self).clean(*args, **kwargs)
+    
+    def save(self, *args, **kwargs):
+        # call clean() which we have overridden
+        self.clean(*args, **kwargs)
+        super(ProductCategory, self).save(*args, **kwargs)
     
     class Meta:
         verbose_name_plural = "Product Categories"
@@ -373,7 +394,7 @@ class Product(models.Model):
     seller = models.ForeignKey(
         Seller, on_delete=models.CASCADE, related_name='products')
     title = models.CharField(max_length=100)
-    category = models.ForeignKey(ProductCategory, on_delete=models.CASCADE)
+    category = models.ForeignKey(ProductCategory, on_delete=models.PROTECT)
     user_ratings = models.ForeignKey(ProductRating, null=True, 
                                      on_delete=models.SET_NULL)
     is_mature = models.BooleanField(default=False)
