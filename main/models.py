@@ -9,6 +9,7 @@ from django.db import models
 from django.utils import timezone
 import time
 import random
+import re
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -17,6 +18,16 @@ User = get_user_model()
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericRelation
+
+
+# generic functions
+def slugify(s):
+  '''turn any string into a url-compatible slug'''
+  s = s.lower().strip()
+  s = re.sub(r'[^\w\s-]', '', s)
+  s = re.sub(r'[\s_-]+', '-', s)
+  s = re.sub(r'^-+|-+$', '', s)
+  return s
 
 
 # Create your models here.
@@ -347,14 +358,18 @@ class ProductCategory(models.Model):
     parent = models.ForeignKey('self',
                                on_delete=models.CASCADE, null=True, blank=True)
     
-    def parent_tree(self):
-        if self.parent == None:
+    def parent_tree(self, url=False):
+        if self.parent == None and url == False:
             return f"{self.name}"
+        elif self.parent == None and url == True:
+            return f"{slugify(self.name)}"
+        elif url == True:
+            return  f"{self.parent.parent_tree(url)}/{slugify(self.name)}"
         else:
-            return f"{self.parent.parent_tree()} -> {self.name}"
+            return f"{self.parent.parent_tree(url)} -> {self.name}"
 
     def __str__(self):
-        return f"ProductCategory{self.id} | {self.parent_tree()}"
+        return f"ProductCategory{self.id} | {self.parent_tree(url=True)}"
     
     def clean(self, *args, **kwargs):
         '''clean() is automatically used in forms, not in the save() method 
