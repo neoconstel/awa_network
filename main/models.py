@@ -344,6 +344,7 @@ class Seller(models.Model):
 
 class ProductCategory(models.Model):
     name = models.CharField(max_length=50)
+    sub_categories = models.TextField()
 
     def __str__(self):
         return f"ProductCategory{self.id} | {self.name}"
