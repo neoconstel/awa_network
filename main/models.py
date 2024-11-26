@@ -10,6 +10,7 @@ from django.utils import timezone
 import time
 import random
 import re
+import json
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -359,6 +360,11 @@ class ProductCategory(models.Model):
                                on_delete=models.CASCADE, null=True, blank=True)
     
     def parent_tree(self, url=False):
+        '''returns the linear tree of this instance beginning with its root
+        parent and ending with this instance.
+        
+        - url: if True, output should be in the form of a url path
+        '''
         if self.parent == None and url == False:
             return f"{self.name}"
         elif self.parent == None and url == True:
@@ -367,6 +373,22 @@ class ProductCategory(models.Model):
             return  f"{self.parent.parent_tree(url)}/{slugify(self.name)}"
         else:
             return f"{self.parent.parent_tree(url)} -> {self.name}"
+        
+    
+    def to_json(self, root=False):
+        tree =  {
+            "id": self.id,
+            "name": self.name,
+            "path": self.parent_tree(url=True),
+            "children": [
+                child.to_json() for child in ProductCategory.objects.filter(
+                    parent=self).all()]
+        }
+        if root:
+            return json.dumps(tree)
+        else:
+            return tree
+    
         
     def cyclic_test(self, initiator):
         '''check if it has been set as descendant of its descendant. Return 
@@ -386,7 +408,7 @@ class ProductCategory(models.Model):
         
 
     def __str__(self):
-        return f"ProductCategory{self.id} | {self.parent_tree(url=True)}"
+        return f"ProductCategory{self.id} | {self.parent_tree(url=False)}"
     
     def clean(self, *args, **kwargs):
         '''clean() is automatically used in forms, not in the save() method 
