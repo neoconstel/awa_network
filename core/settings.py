@@ -221,6 +221,13 @@ CSRF_TRUSTED_ORIGINS = [
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "speedy",
+    }
+}
+
 
 # WAGTAIL SETTINGS
 
