@@ -368,26 +368,33 @@ class ProductCategory(models.Model):
         if self.parent == None and url == False:
             return f"{self.name}"
         elif self.parent == None and url == True:
-            return f"{slugify(self.name)}"
+            return f"/{slugify(self.name)}"
         elif url == True:
             return  f"{self.parent.parent_tree(url)}/{slugify(self.name)}"
         else:
             return f"{self.parent.parent_tree(url)} -> {self.name}"
         
     
-    def to_json(self, root=False):
+    def to_dict(self, jsonify=False):
         tree =  {
             "id": self.id,
             "name": self.name,
             "path": self.parent_tree(url=True),
             "children": [
-                child.to_json() for child in ProductCategory.objects.filter(
+                child.to_dict() for child in ProductCategory.objects.filter(
                     parent=self).all()]
         }
-        if root:
+        if jsonify:
             return json.dumps(tree)
         else:
             return tree
+        
+
+    @classmethod
+    def json_trees(cls):
+        root_categories = ProductCategory.objects.filter(parent=None).all()
+        trees = [root.to_dict(jsonify=False) for root in root_categories]
+        return json.dumps(trees)
     
         
     def cyclic_test(self, initiator):

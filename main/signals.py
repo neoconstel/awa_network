@@ -10,8 +10,12 @@ new_following = django.dispatch.Signal()
 from django.dispatch import receiver
 
 # models
-from .models import User, Artist, Artwork, File, Image, Review, Article
+from .models import (User, Artist, Artwork, File, Image, Review, Article,
+ProductCategory)
 from django.contrib.contenttypes.models import ContentType
+
+# other imports
+from django.core.cache import cache
 
 
 
@@ -115,4 +119,15 @@ def article_listener(sender, **kwargs):
     article_images_query.delete()
 
     # print(f'\n\n\nEXECUTED SIGNAL:  article deleted\n\n\n')
+
+
+# -------ProductCategory-------
+@receiver([post_save, post_delete], sender=ProductCategory, dispatch_uid='productcategory-uid')
+def product_category_listener(sender, **kwargs):
+
+    # get the product categories in json tree structure (which is 
+    # computationally expensive) and store in cache
+    cache.set('product_category_trees', ProductCategory.json_trees())
+
+    # print(f'\n\n\nEXECUTED SIGNAL:  product_category_trees in cache updated \n\n\n')
     
