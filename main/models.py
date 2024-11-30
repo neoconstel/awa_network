@@ -360,7 +360,7 @@ class ProductCategory(models.Model):
                                on_delete=models.CASCADE, null=True, blank=True)
     
     def parent_tree(self, url=False):
-        '''returns the linear tree of this instance beginning with its root
+        '''returns the LINEAR tree of this instance beginning with its root
         parent and ending with this instance.
         
         - url: if True, output should be in the form of a url path
@@ -376,6 +376,12 @@ class ProductCategory(models.Model):
         
     
     def to_dict(self, jsonify=False):
+        '''returns the tree of categories starting from this instance as root,
+        output as a dictionary by default.
+        
+        - jsonify: if True, return output as a json string of the dictionary
+        tree (json.dumps)
+        '''
         tree =  {
             "id": self.id,
             "name": self.name,
@@ -391,10 +397,17 @@ class ProductCategory(models.Model):
         
 
     @classmethod
-    def json_trees(cls):
+    def trees(cls, jsonify=False):
+        '''returns all product category trees as a list
+
+        - jsonify: if True, return output as a json string
+        '''
         root_categories = ProductCategory.objects.filter(parent=None).all()
-        trees = [root.to_dict(jsonify=False) for root in root_categories]
-        return json.dumps(trees)
+        trees = [root.to_dict() for root in root_categories]
+
+        if jsonify:
+            return json.dumps(trees)
+        return trees
     
         
     def cyclic_test(self, initiator):
@@ -466,7 +479,7 @@ class Product(models.Model):
         Seller, on_delete=models.CASCADE, related_name='products')
     title = models.CharField(max_length=100)
     category = models.ForeignKey(ProductCategory, on_delete=models.PROTECT)
-    user_ratings = models.ForeignKey(ProductRating, null=True, 
+    user_ratings = models.ForeignKey(ProductRating, null=True, blank=True, 
                                      on_delete=models.SET_NULL)
     is_mature = models.BooleanField(default=False)
     price = models.PositiveSmallIntegerField(default=0)
@@ -515,6 +528,19 @@ class ProductXImage(models.Model):
     def __str__(self):
         return f"ProductXImage{self.id} | \
             {self.product.id} X {self.image.id}"
+    
+    def clean(self, *args, **kwargs):
+        # ensure no two products use the same Image instance
+        matching_productXimage = ProductXImage.objects.filter(
+            image__id=self.image.id).first()
+        if matching_productXimage and matching_productXimage.id != self.id:
+            raise ValidationError("Two products can't  share the same image!")
+
+        super(ProductXImage, self).clean(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super(ProductXImage, self).save(*args, **kwargs)
     
     class Meta:
         verbose_name_plural = "Product X Image"

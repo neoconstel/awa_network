@@ -127,7 +127,7 @@ def product_category_listener(sender, **kwargs):
 
     # get the product categories in json tree structure (which is 
     # computationally expensive) and store in cache
-    cache.set('product_category_trees', ProductCategory.json_trees())
+    cache.set('product_category_trees', ProductCategory.trees(jsonify=True))
 
     # print(f'\n\n\nEXECUTED SIGNAL:  product_category_trees in cache updated \n\n\n')
     

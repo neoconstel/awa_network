@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 # models
 from main.models import (Artwork, Artist, ArtCategory, Following, Reaction,
-ViewLog, Comment, Review, ArticleCategory, Article)
+ViewLog, Comment, Review, ArticleCategory, Article, Product)
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
@@ -319,4 +319,24 @@ class ArticleSerializer(serializers.ModelSerializer):
             'html_file': {'required': False},
             'html': {'required': True},
         }
+
+
+class ProductSerializer(serializers.ModelSerializer):
+
+    user = UserReadOnlySerializer(many=False, read_only=True)
+    thumbnail_images = serializers.SerializerMethodField()
+
+    def get_thumbnail_images(self, object):
+        try:
+            object.pk # object has id.
+        except:
+            return None
+        
+        image_urls = list(map(
+            lambda i:i.resource.url, object.thumbnail_images.all()))
+        return image_urls
+    
+    class Meta:
+        model = Product
+        fields = '__all__'
         

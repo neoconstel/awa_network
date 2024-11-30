@@ -8,7 +8,7 @@ import random
 from main.models import (
     Artist, Artwork, File, FileType, FileGroup, ArtCategory, Image, Following,
     ReactionType, Reaction, ViewLog, Comment, SiteConfigurations, Review,
-    Article, ArticleCategory)
+    Article, ArticleCategory, ProductCategory, Product)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -17,7 +17,7 @@ from django.db.models import Q
 from .serializers import (
     ArtworkSerializer, ArtistSerializer, ArtCategorySerializer,
     FollowingSerializer, ReactionSerializer, CommentSerializer,
-    ReviewSerializer, ArticleSerializer)
+    ReviewSerializer, ArticleSerializer, ProductSerializer)
 
 # response / status
 from rest_framework.response import Response
@@ -56,7 +56,10 @@ from urllib.parse import urlparse
 # pagination
 from .pagination import (ArtworkPaginationConfig, ArtistPaginationConfig,
 FollowPaginationConfig, ReactionPaginationConfig, CommentPaginationConfig,
-ReviewPaginationConfig, ArticlePaginationConfig)
+ReviewPaginationConfig, ArticlePaginationConfig, ProductPaginationConfig)
+
+# caching
+from django.core.cache import cache
 
 
 class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -1019,3 +1022,34 @@ class ArticleDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
+    
+
+class ProductCategoryList(APIView):
+
+    permission_classes = []
+
+    def get(self, request, *args, **kwargs):
+        trees = cache.get('product_category_trees')
+        if not trees:
+            trees = ProductCategory.trees(jsonify=True)
+        data = {
+            'product_categories': trees
+        }
+        
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
+                                                generics.GenericAPIView):
+
+    # permission_classes = []
+    pagination_class = ProductPaginationConfig
+    ordering = '-id'
+
+    serializer_class = ProductSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return Product.objects.order_by(self.__class__.ordering).all()
