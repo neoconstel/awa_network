@@ -355,7 +355,8 @@ class Seller(models.Model):
     
 
 class ProductCategory(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
+    path = models.CharField(max_length=50, unique=True)
     parent = models.ForeignKey('self',
                                on_delete=models.CASCADE, null=True, blank=True)
     
@@ -452,6 +453,7 @@ class ProductCategory(models.Model):
     def save(self, *args, **kwargs):
         # call clean() which we have overridden
         self.clean(*args, **kwargs)
+        self.path = self.parent_tree(url=True)
         super(ProductCategory, self).save(*args, **kwargs)
     
     class Meta:

@@ -1052,4 +1052,9 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
         return self.list(request, *args, **kwargs)
 
     def get_queryset(self):
+        subcategory_path = self.kwargs.get('subcategory_path')
+        if subcategory_path:
+            return Product.objects.filter(
+                category__path=f"/{subcategory_path}").order_by(
+                    self.__class__.ordering).all()
         return Product.objects.order_by(self.__class__.ordering).all()

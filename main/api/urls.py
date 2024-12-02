@@ -34,6 +34,7 @@ urlpatterns = [
 
     path('resources/categories/', views.ProductCategoryList.as_view(), name='product_category_list'),
     path('resources/products/', views.ProductList.as_view(), name='product_list'),
+    path('resources/products/<path:subcategory_path>/', views.ProductList.as_view(), name='product_list_deep'),
     
     
     # wagtail admin custom settings API. It may be a good idea to shift this
