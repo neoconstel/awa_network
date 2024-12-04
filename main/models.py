@@ -357,8 +357,10 @@ class Seller(models.Model):
 class ProductCategory(models.Model):
     name = models.CharField(max_length=50, unique=True)
     path = models.CharField(max_length=50, unique=True)
-    parent = models.ForeignKey('self',
-                               on_delete=models.CASCADE, null=True, blank=True)
+    parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True,
+                               blank=True, related_name='children')
+    root = models.ForeignKey('self', on_delete=models.SET_NULL, null=True,
+                             blank=True, related_name='branches')
     
     def parent_tree(self, url=False):
         '''returns the LINEAR tree of this instance beginning with its root
@@ -374,6 +376,14 @@ class ProductCategory(models.Model):
             return  f"{self.parent.parent_tree(url)}/{slugify(self.name)}"
         else:
             return f"{self.parent.parent_tree(url)} -> {self.name}"
+        
+
+    def get_root(self):
+        '''returns the root category of this instance.'''
+        if not self.parent:
+            return self
+        else:
+            return self.parent.get_root()
         
     
     def to_dict(self, jsonify=False):
@@ -454,6 +464,7 @@ class ProductCategory(models.Model):
         # call clean() which we have overridden
         self.clean(*args, **kwargs)
         self.path = self.parent_tree(url=True)
+        self.root = self.get_root()
         super(ProductCategory, self).save(*args, **kwargs)
     
     class Meta:

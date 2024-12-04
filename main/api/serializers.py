@@ -325,6 +325,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     user = UserReadOnlySerializer(many=False, read_only=True)
     thumbnail_images = serializers.SerializerMethodField()
+    category = serializers.SerializerMethodField()
 
     def get_thumbnail_images(self, object):
         try:
@@ -335,6 +336,19 @@ class ProductSerializer(serializers.ModelSerializer):
         image_urls = list(map(
             lambda i:i.resource.url, object.thumbnail_images.all()))
         return image_urls
+    
+    def get_category(self, object):
+        try:
+            object.pk # object has id.
+        except:
+            return None
+        
+        return {
+            'id': object.category.pk,
+            'name': object.category.name,
+            'path': object.category.path,
+            'root': object.category.root.name
+        }
     
     class Meta:
         model = Product
