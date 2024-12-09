@@ -8,7 +8,7 @@ import random
 from main.models import (
     Artist, Artwork, File, FileType, FileGroup, ArtCategory, Image, Following,
     ReactionType, Reaction, ViewLog, Comment, SiteConfigurations, Review,
-    Article, ArticleCategory, ProductCategory, Product)
+    Article, ArticleCategory, ProductCategory, Product, Seller)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -17,7 +17,7 @@ from django.db.models import Q
 from .serializers import (
     ArtworkSerializer, ArtistSerializer, ArtCategorySerializer,
     FollowingSerializer, ReactionSerializer, CommentSerializer,
-    ReviewSerializer, ArticleSerializer, ProductSerializer)
+    ReviewSerializer, ArticleSerializer, ProductSerializer, SellerSerializer)
 
 # response / status
 from rest_framework.response import Response
@@ -56,7 +56,8 @@ from urllib.parse import urlparse
 # pagination
 from .pagination import (ArtworkPaginationConfig, ArtistPaginationConfig,
 FollowPaginationConfig, ReactionPaginationConfig, CommentPaginationConfig,
-ReviewPaginationConfig, ArticlePaginationConfig, ProductPaginationConfig)
+ReviewPaginationConfig, ArticlePaginationConfig, ProductPaginationConfig,
+SellerPaginationConfig)
 
 # caching
 from django.core.cache import cache
@@ -1058,3 +1059,19 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
                 category__path=f"/{subcategory_path}").order_by(
                     self.__class__.ordering).all()
         return Product.objects.order_by(self.__class__.ordering).all()
+    
+
+class SellerList(mixins.ListModelMixin, mixins.CreateModelMixin,
+                                                generics.GenericAPIView):
+
+    permission_classes = []
+    pagination_class = SellerPaginationConfig
+    ordering = '-id'
+
+    serializer_class = SellerSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return Seller.objects.order_by(self.__class__.ordering).all()

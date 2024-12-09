@@ -2,7 +2,8 @@ from rest_framework import serializers
 
 # models
 from main.models import (Artwork, Artist, ArtCategory, Following, Reaction,
-ViewLog, Comment, Review, ArticleCategory, Article, Product)
+ViewLog, Comment, Review, ArticleCategory, Article, Product, Seller,
+ProductCategory)
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
@@ -321,11 +322,38 @@ class ArticleSerializer(serializers.ModelSerializer):
         }
 
 
-class ProductSerializer(serializers.ModelSerializer):
+class ProductCategorySerializer(serializers.ModelSerializer):
+
+    root = serializers.SerializerMethodField()
+
+    def get_root(self, object):
+        try:
+            object.pk # object has id.
+        except:
+            return None
+        
+        return object.name
+
+
+    class Meta:
+        model = ProductCategory
+        exclude = ['parent']
+
+
+class SellerSerializer(serializers.ModelSerializer):
 
     user = UserReadOnlySerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Seller
+        fields = '__all__'
+
+
+class ProductSerializer(serializers.ModelSerializer):
+
     thumbnail_images = serializers.SerializerMethodField()
-    category = serializers.SerializerMethodField()
+    category = ProductCategorySerializer(many=False)
+    seller = SellerSerializer(many=False)
 
     def get_thumbnail_images(self, object):
         try:
@@ -337,18 +365,19 @@ class ProductSerializer(serializers.ModelSerializer):
             lambda i:i.resource.url, object.thumbnail_images.all()))
         return image_urls
     
-    def get_category(self, object):
-        try:
-            object.pk # object has id.
-        except:
-            return None
+    # def get_category(self, object):
+    #     try:
+    #         object.pk # object has id.
+    #     except:
+    #         return None
         
-        return {
-            'id': object.category.pk,
-            'name': object.category.name,
-            'path': object.category.path,
-            'root': object.category.root.name
-        }
+    #     return {
+    #         'id': object.category.pk,
+    #         'name': object.category.name,
+    #         'path': object.category.path,
+    #         'root': object.category.root.name
+    #     }        
+        
     
     class Meta:
         model = Product

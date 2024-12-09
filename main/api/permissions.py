@@ -132,3 +132,4 @@ class IsProductSellerElseReadOnly(permissions.BasePermission):
 
         user_permission = request.user and obj.seller.user == request.user
         return user_permission or request.user.is_superuser
+    
