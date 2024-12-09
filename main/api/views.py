@@ -39,7 +39,7 @@ IsCommentAuthorElseReadOnly,
 IsReviewersGroupMemberAndReviewAuthorOrApprovedReadonly,
 IsReviewersGroupMemberOrApprovedReadonly,
 IsArticleCreatorsGroupMemberOrApprovedReadonly,
-IsArticleCreatorsGroupMemberOrReadonly)
+IsArticleCreatorsGroupMemberOrReadonly, IsProductSellerElseReadOnly)
 
 # jwt authentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -1042,7 +1042,7 @@ class ProductCategoryList(APIView):
 class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                                 generics.GenericAPIView):
 
-    # permission_classes = []
+    permission_classes = [IsProductSellerElseReadOnly]
     pagination_class = ProductPaginationConfig
     ordering = '-id'
 

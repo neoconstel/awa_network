@@ -20,7 +20,8 @@ class IsAdminElseReadOnly(permissions.IsAdminUser):
 
 class IsArtworkAuthorElseReadOnly(permissions.BasePermission):
     '''The request allows full access if user is the ArtworkAuthor, else it only
-    allows read-only access'''
+    allows read-only access.
+    This permission is for granting access to an Artwork instance.'''
 
     def has_object_permission(self, request, view, obj):
         # if this is a GET, OPTIONS, or HEAD request
@@ -33,7 +34,8 @@ class IsArtworkAuthorElseReadOnly(permissions.BasePermission):
 
 class IsArtistUserElseReadOnly(permissions.BasePermission):
     '''The request allows full access if user is the Artist, else it only
-    allows read-only access'''
+    allows read-only access.
+    This permission is for granting access to an Artist instance.'''
 
     def has_object_permission(self, request, view, obj):
         # if this is a GET, OPTIONS, or HEAD request
@@ -116,4 +118,17 @@ class IsArticleCreatorsGroupMemberOrReadonly(permissions.BasePermission):
             and request.user.groups.filter(
                 name='ArticleCreators').first() != None
         return user_permission or request.user.is_superuser
-    
+
+
+class IsProductSellerElseReadOnly(permissions.BasePermission):
+    '''The request allows full access if user is the Product seller, else it
+    only allows read-only access.
+    This permission is for granting access to a Product instance.'''
+
+    def has_object_permission(self, request, view, obj):
+        # if this is a GET, OPTIONS, or HEAD request
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        user_permission = request.user and obj.seller.user == request.user
+        return user_permission or request.user.is_superuser
