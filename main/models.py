@@ -478,22 +478,11 @@ class ProductLicense(models.Model):
         return f"ProductLicense{self.id} | {self.name}"
 
 
-class ProductRating(models.Model):
-    user = models.ForeignKey(User, null=True, blank=True,
-                                        on_delete=models.SET_NULL)
-    user_rating = models.SmallIntegerField(default=0)
-
-    def __str__(self):
-        return f"ProductRating{self.id} | {self.user_rating}" 
-
-
 class Product(models.Model):
     seller = models.ForeignKey(
         Seller, on_delete=models.CASCADE, related_name='products')
     title = models.CharField(max_length=100)
     category = models.ForeignKey(ProductCategory, on_delete=models.PROTECT)
-    user_ratings = models.ForeignKey(ProductRating, null=True, blank=True, 
-                                     on_delete=models.SET_NULL)
     is_mature = models.BooleanField(default=False)
     price = models.PositiveSmallIntegerField(default=0)
     thumbnail_images = models.ManyToManyField(Image, through='ProductXImage')
@@ -508,6 +497,7 @@ class Product(models.Model):
     a custom content_type/object_id field name has been used, we now specify)
     the custom field names (for the COMMENT model) in the GenericRelation
     we are creating in the THIS (Product) model'''
+    reactions = GenericRelation(Reaction, related_query_name='reaction_product_object')
     views = GenericRelation(ViewLog, related_query_name='viewlog_product_object')
     comments = GenericRelation(Comment, related_query_name='comment_product_object',
                     content_type_field='post_type', object_id_field='post_id')
@@ -515,6 +505,17 @@ class Product(models.Model):
     
     def __str__(self):
         return f"Product{self.id} | {self.title}"
+    
+
+class ProductRating(models.Model):
+    user = models.ForeignKey(User, null=True, blank=True,
+                                        on_delete=models.SET_NULL)
+    stars = models.SmallIntegerField(default=0)
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name='ratings')
+
+    def __str__(self):
+        return f"ProductRating{self.id} | {self.stars}"
     
 
 class ProductXProductlicense(models.Model):

@@ -3,7 +3,7 @@ from rest_framework import serializers
 # models
 from main.models import (Artwork, Artist, ArtCategory, Following, Reaction,
 ViewLog, Comment, Review, ArticleCategory, Article, Product, Seller,
-ProductCategory)
+ProductCategory, ProductRating)
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
@@ -349,11 +349,21 @@ class SellerSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ProductRatingSerializer(serializers.ModelSerializer):
+
+    user = UserReadOnlySerializer(many=False, read_only=True)
+
+    class Meta:
+        model = ProductRating
+        fields = '__all__'
+
+
 class ProductSerializer(serializers.ModelSerializer):
 
     thumbnail_images = serializers.SerializerMethodField()
     category = ProductCategorySerializer(many=False)
     seller = SellerSerializer(many=False)
+    ratings = serializers.SerializerMethodField()
 
     def get_thumbnail_images(self, object):
         try:
@@ -365,19 +375,14 @@ class ProductSerializer(serializers.ModelSerializer):
             lambda i:i.resource.url, object.thumbnail_images.all()))
         return image_urls
     
-    # def get_category(self, object):
-    #     try:
-    #         object.pk # object has id.
-    #     except:
-    #         return None
+    def get_ratings(self, object):
+        try:
+            object.pk # object has id.
+        except:
+            return None
         
-    #     return {
-    #         'id': object.category.pk,
-    #         'name': object.category.name,
-    #         'path': object.category.path,
-    #         'root': object.category.root.name
-    #     }        
-        
+        ratings = object.ratings
+        return ProductRatingSerializer(ratings, many=True).data  
     
     class Meta:
         model = Product
