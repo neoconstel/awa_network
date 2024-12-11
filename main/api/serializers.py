@@ -364,6 +364,7 @@ class ProductSerializer(serializers.ModelSerializer):
     category = ProductCategorySerializer(many=False)
     seller = SellerSerializer(many=False)
     ratings = serializers.SerializerMethodField()
+    stats = serializers.SerializerMethodField()
 
     def get_thumbnail_images(self, object):
         try:
@@ -382,7 +383,26 @@ class ProductSerializer(serializers.ModelSerializer):
             return None
         
         ratings = object.ratings
-        return ProductRatingSerializer(ratings, many=True).data  
+        return ProductRatingSerializer(ratings, many=True).data
+
+    def get_stats(self, object):
+        try:
+            object.pk # object has id.
+        except:
+            return None
+        
+        ratings_count = object.ratings.count()
+        ratings_sum = sum(list(map(lambda p:p.stars, object.ratings.all())))
+        rating_average = round(ratings_sum/ratings_count,1) \
+            if ratings_count else None
+        reviews_count = object.comments.filter(parent_comment=None).count()
+        
+        return {
+            'ratings_count': ratings_count,
+            'rating_average': rating_average,
+            'reviews_count': reviews_count
+
+        }
     
     class Meta:
         model = Product
