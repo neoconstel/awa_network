@@ -46,6 +46,20 @@ class AccountManager(BaseUserManager):
 
 # create the custom user model
 class User(AbstractBaseUser, PermissionsMixin):
+    def profile_pic_save_path(instance, filename):
+        '''
+        instance: the Model instance ('user' in this case)
+        filename: the original name of the resource e.g "Itachi.png"
+        '''
+
+        # image will be uploaded to MEDIA_ROOT/profile_pics/filename
+        # e.g /media/profile_pics/Itachi.png
+        return (
+            f'profile_pics/{random.randint(1000000, 9999999)}'
+            f'_{time.strftime("%b-%d-%Y__%H-%M-%S__%z")}'
+            f'_{filename}'
+        )
+    
     email = models.EmailField('email address', unique=True)
     username = models.CharField(
         max_length=150, unique=True, blank=True, null=False, default="")
@@ -58,7 +72,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_verified = models.BooleanField(default=False)
 
     profile_image = models.ImageField(
-        upload_to="profile_pics", null=True, blank=True)
+        upload_to=profile_pic_save_path, null=True, blank=True)
     bio = models.CharField(
         max_length=500, null=False, default="Nothing written in bio.")
     membership = models.CharField(max_length=20, null=False, default="Basic")
