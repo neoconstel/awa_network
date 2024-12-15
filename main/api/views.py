@@ -1055,8 +1055,25 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
     def get_queryset(self):
         subcategory_path = self.kwargs.get('subcategory_path')
         if subcategory_path:
+            '''get all products with one of the following conditions:
+            - its category path starts with the queried subcategory path in
+            terms of url pattern, not just spelling 
+                (e.g /tutorials/books-comics/ starts with /tutorials/
+                    but not with /tutor/)
+                OR
+            - its category path matches the queried subcategory path
+                (e.g /tutorials matches with /tutorials)
+            '''
             return Product.objects.filter(
-                category__path=f"/{subcategory_path}").order_by(
+                # use an ending '/' to ensure that the 'startswith' condition
+                # doesn't get confused with a 'similar-spelling' problem.
+                # Such as where the queried subcategory path is '/tutor' and
+                # it wrongly gets taken as a starting path to
+                # /tutorials/books-comics/, thereby including
+                # products with the path: /tutorials/books-comics/
+                Q(category__path__istartswith=f"/{subcategory_path}/")
+                 |
+                Q(category__path=f"/{subcategory_path}")).order_by(
                     self.__class__.ordering).all()
         return Product.objects.order_by(self.__class__.ordering).all()
 

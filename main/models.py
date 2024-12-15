@@ -359,8 +359,14 @@ class Seller(models.Model):
     
 
 class ProductCategory(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-    path = models.CharField(max_length=50, unique=True)
+    '''Two or more product category instances can have the same name (e.g 
+    'rocks' in 3d models and 'rocks' in 2d textures). However, no two
+    product category instances should ever have the same PATH, as the path
+    is like the exact directory in a directory tree in a PC. Something like:
+    (e.g /tutorials/3d/rocks)'''
+    
+    name = models.CharField(max_length=50) # doesn't need to be unique
+    path = models.CharField(max_length=50, unique=True) # MUST be unique
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True,
                                blank=True, related_name='children')
     root = models.ForeignKey('self', on_delete=models.SET_NULL, null=True,
