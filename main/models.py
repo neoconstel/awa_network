@@ -347,6 +347,10 @@ class Seller(models.Model):
     alias = models.CharField(max_length=50, unique=True)
     brand_name = models.CharField(max_length=50)
 
+    # not yet sure if seller profile should use separate pic or user pic
+    # profile_image = models.ImageField(
+    #     upload_to="seller_profile_pics", null=True, blank=True)
+
     
 
 

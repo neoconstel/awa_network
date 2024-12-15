@@ -332,7 +332,7 @@ class ProductCategorySerializer(serializers.ModelSerializer):
         except:
             return None
         
-        return object.name
+        return object.root.name
 
 
     class Meta:

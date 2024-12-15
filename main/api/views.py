@@ -1059,6 +1059,18 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
                 category__path=f"/{subcategory_path}").order_by(
                     self.__class__.ordering).all()
         return Product.objects.order_by(self.__class__.ordering).all()
+
+
+class ProductDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
+                        mixins.DestroyModelMixin, generics.GenericAPIView):
+
+    permission_classes = [IsProductSellerElseReadOnly]
+
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
     
 
 class SellerList(mixins.ListModelMixin, mixins.CreateModelMixin,
