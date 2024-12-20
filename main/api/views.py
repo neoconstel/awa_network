@@ -1053,6 +1053,18 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
         return self.list(request, *args, **kwargs)
 
     def get_queryset(self):
+        seller = self.request.GET.get('seller') # the seller alias
+        products_query = Product.objects
+
+        # filter by seller alias
+        if seller:
+            try:
+                seller = Seller.objects.get(alias=seller)
+                products_query = products_query.filter(seller=seller)
+            except:
+                return Product.objects.none()        
+
+        # filter by category tree
         subcategory_path = self.kwargs.get('subcategory_path')
         if subcategory_path:
             '''get all products with one of the following conditions:
@@ -1064,7 +1076,7 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
             - its category path matches the queried subcategory path
                 (e.g /tutorials matches with /tutorials)
             '''
-            return Product.objects.filter(
+            return products_query.filter(
                 # use an ending '/' to ensure that the 'startswith' condition
                 # doesn't get confused with a 'similar-spelling' problem.
                 # Such as where the queried subcategory path is '/tutor' and
@@ -1075,7 +1087,7 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
                  |
                 Q(category__path=f"/{subcategory_path}")).order_by(
                     self.__class__.ordering).all()
-        return Product.objects.order_by(self.__class__.ordering).all()
+        return products_query.order_by(self.__class__.ordering).all()
 
 
 class ProductDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
