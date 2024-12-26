@@ -2,6 +2,7 @@
     - convert all Interger primary keys to BigInteger fields (UUID where possible)
     - set model validator constraints on all fields prone to referencial 
     integrity compromise (such as GenericForeignKey fields and JSONFields)
+    - verify that delete signals are added anywhere there is ManyToManyFields to ensure automatic CASCADE deletion
 '''
 
 
@@ -481,11 +482,11 @@ class ProductCategory(models.Model):
         verbose_name_plural = "Product Categories"
     
 
-class ProductLicense(models.Model):
+class License(models.Model):
     name = models.CharField(max_length=50)
 
     def __str__(self):
-        return f"ProductLicense{self.id} | {self.name}"
+        return f"License{self.id} | {self.name}"
 
 
 class Product(models.Model):
@@ -499,8 +500,6 @@ class Product(models.Model):
     description = models.TextField()
     tags = models.CharField(max_length=200, blank=True, null=True)
     date_published = models.DateTimeField(default=timezone.now)
-    licenses = models.ManyToManyField(ProductLicense, related_name='products',
-                                      through='ProductXProductlicense')
 
     '''generic related fields for reverse quering (many to many behaviour)
     note that in the case of <comments>, which is of the Comment model (where
@@ -517,6 +516,15 @@ class Product(models.Model):
         return f"Product{self.id} | {self.title}"
     
 
+# class ProductItem(models.Model):
+#     product = models.ForeignKey(Product, on_delete=models.CASCADE,
+#                                 related_name='items')
+#     file = models.ManyToManyField(File, through='')
+    
+#     def __str__(self):
+#         return f"ProductItem{self.id} | | product: {self.product}"
+    
+
 class ProductRating(models.Model):
     user = models.ForeignKey(User, null=True, blank=True,
                                         on_delete=models.SET_NULL)
@@ -526,21 +534,6 @@ class ProductRating(models.Model):
 
     def __str__(self):
         return f"ProductRating{self.id} | {self.stars}"
-    
-
-class ProductXProductlicense(models.Model):
-    '''custom "through" table for Product and ProductLicense
-            ManyToManyRelationship'''
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    product_license = models.ForeignKey(ProductLicense,
-                                                on_delete=models.CASCADE)    
-
-    def __str__(self):
-        return f"ProductXProductlicense{self.id} | \
-            {self.product.id} X {self.product_license.id}"
-
-    class Meta:
-        verbose_name_plural = "Product X ProductLicense"
     
 
 class ProductXImage(models.Model):
@@ -568,6 +561,20 @@ class ProductXImage(models.Model):
     
     class Meta:
         verbose_name_plural = "Product X Image"
+
+
+# class ProductItemXLicence(models.Model):
+#     '''custom "through" table for ProductItem and Licence
+#             ManyToManyRelationship'''
+#     product_item = models.ForeignKey(ProductItem, on_delete=models.CASCADE)
+#     license = models.ForeignKey(License, on_delete=models.CASCADE)    
+
+#     def __str__(self):
+#         return f"ProductItemXLicence{self.id} | \
+#             {self.product_item.id} X {self.license.id}"
+
+#     class Meta:
+#         verbose_name_plural = "ProductItem X File"
     
 
 
