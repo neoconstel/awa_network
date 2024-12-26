@@ -516,13 +516,14 @@ class Product(models.Model):
         return f"Product{self.id} | {self.title}"
     
 
-# class ProductItem(models.Model):
-#     product = models.ForeignKey(Product, on_delete=models.CASCADE,
-#                                 related_name='items')
-#     file = models.ManyToManyField(File, through='')
+class ProductItem(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE,
+                                related_name='items')
+    file = models.OneToOneField(File, on_delete=models.CASCADE)
+    licence = models.ManyToManyField(License, through='ProductItemXLicence')
     
-#     def __str__(self):
-#         return f"ProductItem{self.id} | | product: {self.product}"
+    def __str__(self):
+        return f"ProductItem{self.id} | {self.file.resource.name} | product: {self.product}"
     
 
 class ProductRating(models.Model):
@@ -563,18 +564,18 @@ class ProductXImage(models.Model):
         verbose_name_plural = "Product X Image"
 
 
-# class ProductItemXLicence(models.Model):
-#     '''custom "through" table for ProductItem and Licence
-#             ManyToManyRelationship'''
-#     product_item = models.ForeignKey(ProductItem, on_delete=models.CASCADE)
-#     license = models.ForeignKey(License, on_delete=models.CASCADE)    
+class ProductItemXLicence(models.Model):
+    '''custom "through" table for ProductItem and Licence
+            ManyToManyRelationship'''
+    product_item = models.ForeignKey(ProductItem, on_delete=models.CASCADE)
+    license = models.ForeignKey(License, on_delete=models.CASCADE)    
 
-#     def __str__(self):
-#         return f"ProductItemXLicence{self.id} | \
-#             {self.product_item.id} X {self.license.id}"
+    def __str__(self):
+        return f"ProductItemXLicence{self.id} | \
+            {self.product_item.id} X {self.license.id}"
 
-#     class Meta:
-#         verbose_name_plural = "ProductItem X File"
+    class Meta:
+        verbose_name_plural = "ProductItem X File"
     
 
 
