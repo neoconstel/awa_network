@@ -1,9 +1,10 @@
 from rest_framework import serializers
+import re
 
 # models
 from main.models import (Artwork, Artist, ArtCategory, Following, Reaction,
 ViewLog, Comment, Review, ArticleCategory, Article, Product, Seller,
-ProductCategory, ProductRating)
+ProductCategory, ProductRating, ProductItem, License, File)
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
@@ -358,6 +359,39 @@ class ProductRatingSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class LicenseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = License
+        fields = '__all__'
+
+
+class ProductItemSerializer(serializers.ModelSerializer):
+
+    licenses = LicenseSerializer(many=True)
+    file = serializers.SerializerMethodField()
+
+    def get_file(self, object):
+        try:
+            object.pk # object has id.
+        except:
+            return None
+        
+        file_name = object.file.resource.name.split('/')[-1].title()
+
+        # use regex to strip out the part of filename that is there for
+        # purposes of ensuring uniqueness of filename in predictable format.
+        # This doesn't rename the file, but only changes how the filename is
+        # displayed.
+        return re.sub(
+            re.compile('\d{7}_\w{3}-\d{2}-\d{4}__\d\d-\d\d-\d\d__\d{4}_'), '', 
+                    file_name)
+
+    class Meta:
+        model = ProductItem
+        fields = '__all__'
+
+
 class ProductSerializer(serializers.ModelSerializer):
 
     thumbnail_images = serializers.SerializerMethodField()
@@ -365,6 +399,7 @@ class ProductSerializer(serializers.ModelSerializer):
     seller = SellerSerializer(many=False)
     ratings = serializers.SerializerMethodField()
     stats = serializers.SerializerMethodField()
+    items = ProductItemSerializer(many=True)
 
     def get_thumbnail_images(self, object):
         try:
@@ -407,4 +442,3 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
-        

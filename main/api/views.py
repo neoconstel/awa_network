@@ -17,7 +17,8 @@ from django.db.models import Q
 from .serializers import (
     ArtworkSerializer, ArtistSerializer, ArtCategorySerializer,
     FollowingSerializer, ReactionSerializer, CommentSerializer,
-    ReviewSerializer, ArticleSerializer, ProductSerializer, SellerSerializer)
+    ReviewSerializer, ArticleSerializer, ProductSerializer, SellerSerializer,
+    ProductItemSerializer)
 
 # response / status
 from rest_framework.response import Response
