@@ -520,7 +520,7 @@ class ProductItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE,
                                 related_name='items')
     file = models.OneToOneField(File, on_delete=models.CASCADE)
-    licence = models.ManyToManyField(License, through='ProductItemXLicence')
+    license = models.ManyToManyField(License, through='ProductItemXLicense')
     
     def __str__(self):
         return f"ProductItem{self.id} | {self.file.resource.name} | product: {self.product}"
@@ -564,18 +564,18 @@ class ProductXImage(models.Model):
         verbose_name_plural = "Product X Image"
 
 
-class ProductItemXLicence(models.Model):
+class ProductItemXLicense(models.Model):
     '''custom "through" table for ProductItem and Licence
             ManyToManyRelationship'''
     product_item = models.ForeignKey(ProductItem, on_delete=models.CASCADE)
     license = models.ForeignKey(License, on_delete=models.CASCADE)    
 
     def __str__(self):
-        return f"ProductItemXLicence{self.id} | \
+        return f"ProductItemXLicense{self.id} | \
             {self.product_item.id} X {self.license.id}"
 
     class Meta:
-        verbose_name_plural = "ProductItem X File"
+        verbose_name_plural = "ProductItem X License"
     
 
 
