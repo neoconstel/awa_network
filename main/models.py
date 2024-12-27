@@ -520,7 +520,7 @@ class ProductItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE,
                                 related_name='items')
     file = models.OneToOneField(File, on_delete=models.CASCADE)
-    license = models.ManyToManyField(License, through='ProductItemXLicense')
+    licenses = models.ManyToManyField(License, through='ProductItemXLicense')
     
     def __str__(self):
         return f"ProductItem{self.id} | {self.file.resource.name} | product: {self.product}"
