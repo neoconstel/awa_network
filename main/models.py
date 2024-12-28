@@ -220,6 +220,47 @@ class File(models.Model):
 
     def __str__(self):
         return f"File{self.id} | {self.resource.name}"
+    
+    @property
+    def filesize(self):
+        size = self.resource.size
+        threshold = 512
+        if size < threshold:
+            value = round(size, 2)
+            unit = ' Bytes'
+        elif size < threshold*1000:
+            value = round(size/1000, 2)
+            unit = ' Kb'
+        elif size < threshold*1000_000:
+            value = round(size/1000_000, 2)
+            unit = ' Mb'
+        else:
+            value = round(size/1000_000_000, 2)
+            unit = ' Gb'
+        return str(value)+unit    
+
+    @property
+    def extension(self):
+        split_name = self.resource.name.split('.')
+        if len(split_name) > 1:
+            ext = split_name[-1]
+        else:
+            ext = 'other'
+        
+        return ext.lower()
+    
+    @property
+    def filename(self):
+        name = self.resource.name.split('/')[-1].title()
+
+        # use regex to strip out the part of filename that is there for
+        # purposes of ensuring uniqueness of filename in predictable format.
+        # This doesn't rename the file, but only changes how the filename is
+        # displayed when gotten from this property.
+        name = re.sub(
+            re.compile('\d{7}_\w{3}-\d{2}-\d{4}__\d\d-\d\d-\d\d__\d{4}_'), '', 
+                    name)
+        return name
 
 
 class Image(models.Model):
