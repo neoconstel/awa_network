@@ -406,36 +406,39 @@ class ProductSerializer(serializers.ModelSerializer):
     items = ProductItemSerializer(many=True)
     license_data = serializers.SerializerMethodField()
 
-    def get_thumbnail_images(self, object):
+    # (model @property): the price of the CHEAPEST license for this product
+    price = serializers.SerializerMethodField()
+
+    def get_thumbnail_images(self, product):
         try:
-            object.pk # object has id.
+            product.pk # object has id.
         except:
             return None
         
         image_urls = list(map(
-            lambda i:i.resource.url, object.thumbnail_images.all()))
+            lambda i:i.resource.url, product.thumbnail_images.all()))
         return image_urls
     
-    def get_ratings(self, object):
+    def get_ratings(self, product):
         try:
-            object.pk # object has id.
+            product.pk # object has id.
         except:
             return None
         
-        ratings = object.ratings
+        ratings = product.ratings
         return ProductRatingSerializer(ratings, many=True).data
 
-    def get_stats(self, object):
+    def get_stats(self, product):
         try:
-            object.pk # object has id.
+            product.pk # object has id.
         except:
             return None
         
-        ratings_count = object.ratings.count()
-        ratings_sum = sum(list(map(lambda p:p.stars, object.ratings.all())))
+        ratings_count = product.ratings.count()
+        ratings_sum = sum(list(map(lambda p:p.stars, product.ratings.all())))
         rating_average = round(ratings_sum/ratings_count,1) \
             if ratings_count else None
-        reviews_count = object.comments.filter(parent_comment=None).count()
+        reviews_count = product.comments.filter(parent_comment=None).count()
         
         return {
             'ratings_count': ratings_count,
@@ -444,18 +447,26 @@ class ProductSerializer(serializers.ModelSerializer):
 
         }
     
-    def get_license_data(self, object):
+    def get_license_data(self, product):
         try:
-            object.pk # object has id.
+            product.pk # object has id.
         except:
             return None
         
         # get related Product X License through table instances
-        productXlicenses = ProductXLicense.objects.filter(product__id=object.id)
+        productXlicenses = ProductXLicense.objects.filter(product__id=product.id)
         serialized_productXlicenses = ProductXLicenseSerializer(
             productXlicenses, many=True)
         
         return serialized_productXlicenses.data
+    
+    def get_price(self, product):
+        try:
+            product.pk # object has id.
+        except:
+            return None
+        
+        return product.price
     
     class Meta:
         model = Product

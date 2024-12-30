@@ -556,6 +556,15 @@ class Product(models.Model):
     def __str__(self):
         return f"Product{self.id} | {self.title}"
     
+    @property
+    def price(self):
+        productXLicense_cheapest = ProductXLicense.objects.filter(
+            product__id=self.id).order_by('price').first()
+        if not productXLicense_cheapest:
+            return 0
+        
+        return productXLicense_cheapest.price
+    
 
 class ProductItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE,
