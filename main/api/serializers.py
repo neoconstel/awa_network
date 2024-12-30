@@ -4,7 +4,7 @@ import re
 # models
 from main.models import (Artwork, Artist, ArtCategory, Following, Reaction,
 ViewLog, Comment, Review, ArticleCategory, Article, Product, Seller,
-ProductCategory, ProductRating, ProductItem, License, File)
+ProductCategory, ProductRating, ProductItem, License, ProductXLicense)
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
@@ -366,6 +366,13 @@ class LicenseSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ProductXLicenseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProductXLicense
+        fields = '__all__'
+
+
 class ProductItemSerializer(serializers.ModelSerializer):
 
     licenses = LicenseSerializer(many=True)
@@ -397,6 +404,7 @@ class ProductSerializer(serializers.ModelSerializer):
     ratings = serializers.SerializerMethodField()
     stats = serializers.SerializerMethodField()
     items = ProductItemSerializer(many=True)
+    license_data = serializers.SerializerMethodField()
 
     def get_thumbnail_images(self, object):
         try:
@@ -435,6 +443,19 @@ class ProductSerializer(serializers.ModelSerializer):
             'reviews_count': reviews_count
 
         }
+    
+    def get_license_data(self, object):
+        try:
+            object.pk # object has id.
+        except:
+            return None
+        
+        # get related Product X License through table instances
+        productXlicenses = ProductXLicense.objects.filter(product__id=object.id)
+        serialized_productXlicenses = ProductXLicenseSerializer(
+            productXlicenses, many=True)
+        
+        return serialized_productXlicenses.data
     
     class Meta:
         model = Product

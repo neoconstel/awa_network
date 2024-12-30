@@ -536,11 +536,11 @@ class Product(models.Model):
     title = models.CharField(max_length=100)
     category = models.ForeignKey(ProductCategory, on_delete=models.PROTECT)
     is_mature = models.BooleanField(default=False)
-    price = models.PositiveSmallIntegerField(default=0)
     thumbnail_images = models.ManyToManyField(Image, through='ProductXImage')
     description = models.TextField()
     tags = models.CharField(max_length=200, blank=True, null=True)
     date_published = models.DateTimeField(default=timezone.now)
+    licenses = models.ManyToManyField(License, through='ProductXLicense')
 
     '''generic related fields for reverse quering (many to many behaviour)
     note that in the case of <comments>, which is of the Comment model (where
@@ -617,8 +617,39 @@ class ProductItemXLicense(models.Model):
 
     class Meta:
         verbose_name_plural = "ProductItem X License"
-    
 
+
+class ProductXLicense(models.Model):
+    '''custom "through" table for ProductItem and Licence
+            ManyToManyRelationship.
+    
+    This many to many relationship is intended for storing data that is
+    specific to the product and the license. An example is the PRICE of the
+    product depending on which license is being purchased.'''
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    license = models.ForeignKey(License, on_delete=models.CASCADE)
+    price = models.PositiveIntegerField(default=0)    
+
+    def __str__(self):
+        return f"ProductXLicense{self.id} | \
+            {self.product.id} X {self.license.id}"
+    
+    def clean(self, *args, **kwargs):
+        # ensure no two instances have same product and license combination
+        existing_productXlicense = ProductXLicense.objects.filter(
+            product__id=self.product.id, license__id=self.license.id).first()
+        if existing_productXlicense and self.id != existing_productXlicense.id:
+            raise ValidationError("Cannot have duplicate Product and License relationship")
+        
+        super(ProductXLicense, self).clean(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        self.clean(*args, **kwargs)
+        super(ProductXLicense, self).save(*args, *kwargs)
+
+    class Meta:
+        verbose_name_plural = "Product X License"
 
 
 
