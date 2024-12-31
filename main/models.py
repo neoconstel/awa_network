@@ -408,7 +408,7 @@ class ProductCategory(models.Model):
     (e.g /tutorials/3d/rocks)'''
     
     name = models.CharField(max_length=50) # doesn't need to be unique
-    path = models.CharField(max_length=50, unique=True) # MUST be unique
+    path = models.CharField(max_length=50, unique=True, blank=True) # MUST be unique
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True,
                                blank=True, related_name='children')
     root = models.ForeignKey('self', on_delete=models.SET_NULL, null=True,
