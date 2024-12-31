@@ -122,8 +122,25 @@ def article_listener(sender, **kwargs):
 
 
 # -------ProductCategory-------
-@receiver([post_save, post_delete], sender=ProductCategory, dispatch_uid='productcategory-uid')
+@receiver(post_save, sender=ProductCategory, dispatch_uid='productcategory-uid')
 def product_category_listener(sender, **kwargs):
+
+    model_instance = kwargs.get('instance')
+    
+    # if product category instance saved without a root, save again with root
+    if not model_instance.root:
+        model_instance.root = model_instance.get_root()
+        model_instance.save()
+
+    # get the product categories in json tree structure (which is 
+    # computationally expensive) and store in cache
+    cache.set('product_category_trees', ProductCategory.trees(jsonify=True))
+
+    # print(f'\n\n\nEXECUTED SIGNAL:  product_category_trees in cache updated \n\n\n')
+
+
+@receiver(post_delete, sender=ProductCategory, dispatch_uid='productcategory-uid2')
+def product_category_listener2(sender, **kwargs):
 
     # get the product categories in json tree structure (which is 
     # computationally expensive) and store in cache

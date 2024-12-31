@@ -432,10 +432,16 @@ class ProductCategory(models.Model):
 
     def get_root(self):
         '''returns the root category of this instance.'''
-        if not self.parent:
+        # existing (saved) root category
+        if self.id and not self.parent:
             return self
-        else:
+        # non-root category (doesn't matter if it's new or existing)
+        elif self.parent:
             return self.parent.get_root()
+        # has no id or parent (newly created/unsaved root category)
+        else:
+            # return None, but use post-save signals to assign itself as root
+            return None
         
     
     def to_dict(self, jsonify=False):
