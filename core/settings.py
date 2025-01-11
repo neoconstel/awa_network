@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'import_export',
     'wagtail.api.v2',
+    'django_drf_filepond',
 
     'core',
     'user',
@@ -125,6 +126,11 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+
+# FILEPOND (for async file uploads)
+DJANGO_DRF_FILEPOND_UPLOAD_TMP = os.path.join(BASE_DIR, 'filepond-temp-uploads')
+DJANGO_DRF_FILEPOND_FILE_STORE_PATH = os.path.join(BASE_DIR, 'stored_uploads')
 
 
 # Password validation

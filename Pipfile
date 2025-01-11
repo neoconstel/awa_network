@@ -19,6 +19,7 @@ wagtail = "*"
 whitenoise = "*"
 ipython = "*"
 beautifulsoup4 = "*"
+django-drf-filepond = "*"
 
 [dev-packages]
 

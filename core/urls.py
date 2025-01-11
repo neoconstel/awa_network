@@ -42,6 +42,9 @@ urlpatterns = [
     re_path(r'^admin/*', include(wagtailadmin_urls)),
     re_path(r'documents/*', include(wagtaildocs_urls)),
 
+    # filepond
+    re_path(r'^fp/*', include('django_drf_filepond.urls')),
+
     # # WAGTAIL API ENDPOINTS (pages, images, documents)
     re_path(r'api/v2/*', api_router.urls),
 

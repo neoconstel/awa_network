@@ -86,6 +86,14 @@ __pycache__/
 local_settings.py
 media/
 
+
+# Filepond
+filepond_uploads
+filepond-temp-uploads
+stored_uploads
+
+
+# Others
 .env
 db.sqlite3
 venv
@@ -94,6 +102,7 @@ backup
 staticfiles
 /static/assets
 /static/icons
+
 
 
 
