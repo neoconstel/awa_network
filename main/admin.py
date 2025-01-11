@@ -5,6 +5,9 @@ ArticleCategory, Article, Seller, ProductCategory, License,
 ProductRating, Product, ProductXImage, ProductItem, ProductItemXLicense,
 ProductXLicense)
 
+# filepond
+from django_drf_filepond.models import TemporaryUpload
+
 # wagtail
 from .models import Page
 
@@ -47,7 +50,7 @@ admin.site.register(ProductXImage)
 admin.site.register(ProductItem)
 admin.site.register(ProductItemXLicense)
 admin.site.register(ProductXLicense)
-
+admin.site.register(TemporaryUpload)
 
 # wagtail
 admin.site.register(Page)
