@@ -8,7 +8,7 @@ import random
 from main.models import (
     Artist, Artwork, File, FileType, FileGroup, ArtCategory, Image, Following,
     ReactionType, Reaction, ViewLog, Comment, SiteConfigurations, Review,
-    Article, ArticleCategory, ProductCategory, Product, Seller)
+    Article, ArticleCategory, ProductCategory, Product, Seller, License)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -18,7 +18,7 @@ from .serializers import (
     ArtworkSerializer, ArtistSerializer, ArtCategorySerializer,
     FollowingSerializer, ReactionSerializer, CommentSerializer,
     ReviewSerializer, ArticleSerializer, ProductSerializer, SellerSerializer,
-    ProductItemSerializer)
+    ProductItemSerializer, LicenseSerializer)
 
 # response / status
 from rest_framework.response import Response
@@ -1105,7 +1105,6 @@ class ProductDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
 
 class SellerList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                                 generics.GenericAPIView):
-
     permission_classes = []
     pagination_class = SellerPaginationConfig
     ordering = '-id'
@@ -1117,3 +1116,14 @@ class SellerList(mixins.ListModelMixin, mixins.CreateModelMixin,
 
     def get_queryset(self):
         return Seller.objects.order_by(self.__class__.ordering).all()
+    
+
+class LicenseList(APIView):
+    permission_classes = []
+
+    def get(self, request):
+        licenses = License.objects.all()
+        serialized_licenses = LicenseSerializer(licenses, many=True).data
+        
+        return Response(serialized_licenses, status=status.HTTP_200_OK)
+    
