@@ -531,6 +531,7 @@ class ProductCategory(models.Model):
 
 class License(models.Model):
     name = models.CharField(max_length=50)
+    free = models.BooleanField(default=False)
 
     def __str__(self):
         return f"License{self.id} | {self.name}"
