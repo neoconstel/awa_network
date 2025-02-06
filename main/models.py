@@ -623,7 +623,9 @@ class ProductXImage(models.Model):
 
 class ProductItemXLicense(models.Model):
     '''custom "through" table for ProductItem and Licence
-            ManyToManyRelationship'''
+            ManyToManyRelationship
+    This model holds information to show the licenses attributed to a given
+    product item (file in practical terms)'''
     product_item = models.ForeignKey(ProductItem, on_delete=models.CASCADE)
     license = models.ForeignKey(License, on_delete=models.CASCADE)    
 

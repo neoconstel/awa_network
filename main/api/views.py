@@ -3,6 +3,7 @@ import json
 import time
 from django.conf import settings
 import random
+import os
 
 # models
 from main.models import (
@@ -49,6 +50,7 @@ from user.api.views import get_jwt_access_tokens_for_user
 # File handling
 import io
 from django.core.files import File as DjangoFile
+from django_drf_filepond.models import TemporaryUpload
 
 # web/html parsing
 from bs4 import BeautifulSoup
@@ -62,6 +64,34 @@ SellerPaginationConfig)
 
 # caching
 from django.core.cache import cache
+
+
+def store_filepond_upload(upload_id,model_name:str,file_group:str,file_type=None):
+            temp_upload = TemporaryUpload.objects.get(upload_id=upload_id)
+
+            # create Image instance with empty resource to get path for moving temporary upload
+            empty_file = io.StringIO('')
+            empty_file.name = temp_upload.upload_name
+            empty_resource = DjangoFile(empty_file)
+            model_name = model_name.lower()
+            # avoid ContentType clash with Wagtail images and use our Image
+            # model directly
+            if model_name == 'image':
+                model_class = Image
+            else:
+                model_class = ContentType.objects.get(model=model_name).model_class()
+            model_instance = model_class(file_group=FileGroup.objects.get(name='products'))
+            if file_type:
+                model_instance.file_type = file_type
+            model_instance.resource = empty_resource
+            model_instance.save()
+            save_path = model_instance.resource.path
+
+            # delete empty file from permanent save path and replace with temp file
+            os.remove(save_path)
+            os.rename(temp_upload.get_file_path(), save_path)
+            # delete the temporary upload object
+            temp_upload.delete()
 
 
 class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -1052,6 +1082,49 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
+    
+    def post(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+
+        # title = data['title']
+        # category = data['category']
+        # description = data['description']
+        # product_file_datas = data['product_files']
+        # sample_image_datas = data['sample_images']
+        # product_licenses = data['product_licenses']
+
+        '''models instances to be created
+        ---primary models---
+        - Product (from product data)
+        - ProductItem <-- File (from product_files)
+        ---secondary models (custom through tables for manytomanyrelationships---
+        - ProductXImage <-- Image (from sample_images)
+        - ProductXLicense (from product_licenses)
+        - ProductItemXLicense (from product_file_datas)
+        '''
+
+        # CREATE PRODUCT INSTANCE
+        # get just the data for creating a Product instance from dictionary
+        product_fields = [field.name for field in Product._meta.get_fields()]
+        product_data = {key:value for key, value in data.items() if key in product_fields} # TODO: add serializer validation here
+        product_data['category'] = ProductCategory.objects.get(id=product_data['category'])
+        product_data['seller'] = request.user.seller
+        product = Product(**product_data)
+
+        # MOVING (not copying) TEMPORARY FILE TO PERMANT FILE
+        # first create fake permanent file from wrapped empty in-memory file (to get the permanent file path)
+        # DELETE the fake permanent file
+        # move temporary uploaded file to path of deleted fake permant file via os rename
+
+        sample_image_ids = [file_data['file']['serverId'] for file_data in data['sample_images']]
+        for id in sample_image_ids:
+            store_filepond_upload(upload_id=id, model_name='image', file_group='products')
+
+            print("Ran product list successfully. Files should be created.")
+
+
+
+        return Response(status=status.HTTP_200_OK)
 
     def get_queryset(self):
         seller = self.request.GET.get('seller') # the seller alias
