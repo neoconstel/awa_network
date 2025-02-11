@@ -4,12 +4,14 @@ import time
 from django.conf import settings
 import random
 import os
+from typing import Type, Any
 
 # models
 from main.models import (
     Artist, Artwork, File, FileType, FileGroup, ArtCategory, Image, Following,
     ReactionType, Reaction, ViewLog, Comment, SiteConfigurations, Review,
-    Article, ArticleCategory, ProductCategory, Product, Seller, License)
+    Article, ArticleCategory, ProductCategory, Product, Seller, License,
+    ProductXImage, ProductItem, ProductXLicense, ProductItemXLicense)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -66,20 +68,17 @@ SellerPaginationConfig)
 from django.core.cache import cache
 
 
-def store_filepond_upload(upload_id,model_name:str,file_group:str,file_type=None):
+def store_filepond_upload(upload_id,model_class:Type[Any],file_group:str,file_type=None) -> object:
+            # MOVING (not copying) TEMPORARY FILE TO PERMANT FILE
+            # first create fake permanent file from wrapped empty in-memory file (to get the permanent file path)
+            # DELETE the fake permanent file
+            # move temporary uploaded file to path of deleted fake permant file via os rename
             temp_upload = TemporaryUpload.objects.get(upload_id=upload_id)
 
             # create Image instance with empty resource to get path for moving temporary upload
             empty_file = io.StringIO('')
             empty_file.name = temp_upload.upload_name
             empty_resource = DjangoFile(empty_file)
-            model_name = model_name.lower()
-            # avoid ContentType clash with Wagtail images and use our Image
-            # model directly
-            if model_name == 'image':
-                model_class = Image
-            else:
-                model_class = ContentType.objects.get(model=model_name).model_class()
             model_instance = model_class(file_group=FileGroup.objects.get(name='products'))
             if file_type:
                 model_instance.file_type = file_type
@@ -92,6 +91,8 @@ def store_filepond_upload(upload_id,model_name:str,file_group:str,file_type=None
             os.rename(temp_upload.get_file_path(), save_path)
             # delete the temporary upload object
             temp_upload.delete()
+
+            return model_instance
 
 
 class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -1110,19 +1111,48 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
         product_data['category'] = ProductCategory.objects.get(id=product_data['category'])
         product_data['seller'] = request.user.seller
         product = Product(**product_data)
+        product.save()
 
-        # MOVING (not copying) TEMPORARY FILE TO PERMANT FILE
-        # first create fake permanent file from wrapped empty in-memory file (to get the permanent file path)
-        # DELETE the fake permanent file
-        # move temporary uploaded file to path of deleted fake permant file via os rename
-
+        # CREATE PRODUCT IMAGES
         sample_image_ids = [file_data['file']['serverId'] for file_data in data['sample_images']]
         for id in sample_image_ids:
-            store_filepond_upload(upload_id=id, model_name='image', file_group='products')
+            sample_image = store_filepond_upload(
+                upload_id=id, model_class=Image, file_group='products')
+            product_image = ProductXImage(product=product, image=sample_image)
+            product_image.save()
+        
 
-            print("Ran product list successfully. Files should be created.")
+        # CREATE PRODUCT LICENSES
+        for license in data['product_licenses']:
+            product_license = ProductXLicense(
+                product=product,
+                license = License.objects.get(id=license['id']),
+                price = license['price'] if license.get('price') else 0
+            )
+            product_license.save()
 
+        # CREATE PRODUCT ITEMS (files) AND PRODUCT LICENSES
+        for product_file_data in data['product_files']:
+            try:
+                file_type, newly_created = FileType.objects.get_or_create(
+                    name=product_file_data['file']['fileType'].split('/')[0])
+            except:
+                file_type, newly_created = FileType.objects.get_or_create(
+                    name='other')
+            
+            product_file = store_filepond_upload(
+                upload_id=product_file_data['file']['serverId'], model_class=File,
+                file_group='products', file_type=file_type)
+            product_item = ProductItem(product=product, file=product_file)
+            product_item.save()
 
+            file_licenses = product_file_data['licenses']
+            for license in file_licenses:
+                product_item_license = ProductItemXLicense(
+                    product_item=product_item, license=License.objects.get(id=license['id']))
+                product_item_license.save()
+
+        print("ran all product calls successfully")         
 
         return Response(status=status.HTTP_200_OK)
 
