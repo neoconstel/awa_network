@@ -11,7 +11,7 @@ from django.dispatch import receiver
 
 # models
 from .models import (User, Artist, Artwork, File, Image, Review, Article,
-ProductCategory)
+ProductCategory, ProductXImage)
 from django.contrib.contenttypes.models import ContentType
 
 # other imports
@@ -147,4 +147,15 @@ def product_category_listener2(sender, **kwargs):
     cache.set('product_category_trees', ProductCategory.trees(jsonify=True))
 
     # print(f'\n\n\nEXECUTED SIGNAL:  product_category_trees in cache updated \n\n\n')
+
+
+# -------ProductXImage-------
+@receiver(post_delete, sender=ProductXImage, dispatch_uid='productximage-uid')
+def productximage_listener(sender, **kwargs):
+    model_instance = kwargs.get('instance')
+    
+    # delete the associated image
+    model_instance.image.delete()
+
+    # print(f'\n\n\nEXECUTED SIGNAL: product image deleted\n\n\n')
     
