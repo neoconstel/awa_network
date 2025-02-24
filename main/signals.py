@@ -11,7 +11,7 @@ from django.dispatch import receiver
 
 # models
 from .models import (User, Artist, Artwork, File, Image, Review, Article,
-ProductCategory, ProductXImage)
+ProductCategory, ProductXImage, ProductItem)
 from django.contrib.contenttypes.models import ContentType
 
 # other imports
@@ -158,4 +158,15 @@ def productximage_listener(sender, **kwargs):
     model_instance.image.delete()
 
     # print(f'\n\n\nEXECUTED SIGNAL: product image deleted\n\n\n')
+
+
+# -------ProductItem-------
+@receiver(post_delete, sender=ProductItem, dispatch_uid='productitem-uid')
+def product_item_listener(sender, **kwargs):
+    model_instance = kwargs.get('instance')
+    
+    # delete the associated file
+    model_instance.file.delete()
+
+    print(f'\n\n\nEXECUTED SIGNAL: product_item file deleted\n\n\n')
     

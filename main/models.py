@@ -576,7 +576,10 @@ class Product(models.Model):
 class ProductItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE,
                                 related_name='items')
-    file = models.OneToOneField(File, on_delete=models.CASCADE)
+    
+    # leave file as null=True and SET_NULL otherwise signals won't delete it
+    # when its ProductItem is deleted
+    file = models.OneToOneField(File, null=True, on_delete=models.SET_NULL)
     licenses = models.ManyToManyField(License, through='ProductItemXLicense')
     
     def __str__(self):
