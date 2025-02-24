@@ -1134,11 +1134,16 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
         # CREATE PRODUCT ITEMS (files) AND PRODUCT LICENSES
         for product_file_data in data['product_files']:
             try:
-                file_type, newly_created = FileType.objects.get_or_create(
-                    name=product_file_data['file']['fileType'].split('/')[0])
+                # if no errors but blank file type
+                file_type_name=product_file_data['file']['fileType'].split('/')[0]
+                if file_type_name.strip() == "":
+                    file_type_name = 'other'
             except:
+                # if any errors
+                file_type_name = 'other'
+            finally:
                 file_type, newly_created = FileType.objects.get_or_create(
-                    name='other')
+                    name=file_type_name)
             
             product_file = store_filepond_upload(
                 upload_id=product_file_data['file']['serverId'], model_class=File,
