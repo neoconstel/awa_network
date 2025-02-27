@@ -1084,6 +1084,21 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
     
+    def get_queryset(self):
+        seller_alias = self.request.GET.get('seller')
+
+        products_query = Product.objects
+
+        if seller_alias:
+            try:
+                seller = Seller.objects.get(alias=seller_alias)
+            except Exception as e:
+                return products_query.none()
+            else:
+                products_query = products_query.filter(seller=seller)
+
+        return products_query.order_by(self.__class__.ordering).all()
+    
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body)
 
