@@ -673,6 +673,27 @@ class ProductXLicense(models.Model):
         verbose_name_plural = "Product X License"
 
 
+class Contest(models.Model):
+    '''for the Challenge section'''
+    title = models.CharField(max_length=100)
+    reward = models.PositiveIntegerField()
+    thumbnail_image = models.ForeignKey(Image, null=True, blank=True,
+                                        on_delete=models.SET_NULL)
+    details = models.TextField() # html to be stored here
+    start_date = models.DateTimeField(null=False)
+    end_date = models.DateTimeField(null=False)
+
+
+class ContestEntry(models.Model):
+    user = models.ForeignKey(User, null=True, blank=True,
+                              on_delete=models.SET_NULL)
+    title = models.CharField(max_length=100)
+    content = models.TextField() # html content
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE,
+                                related_name="entries")
+    rank = models.PositiveIntegerField(null=True, blank=True)
+    # views = 
+
 
 #--------- execute this part only from models.py in the 'main' app-------------
 if __name__ == 'main.models':

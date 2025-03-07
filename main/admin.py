@@ -3,7 +3,7 @@ from .models import (Artist, FileType, File, Artwork, Following, ArtCategory,
 FileGroup, Image, ReactionType, Reaction, ViewLog, Comment, Review, Genre,
 ArticleCategory, Article, Seller, ProductCategory, License,
 ProductRating, Product, ProductXImage, ProductItem, ProductItemXLicense,
-ProductXLicense)
+ProductXLicense, Contest, ContestEntry)
 
 # filepond
 from django_drf_filepond.models import TemporaryUpload
@@ -51,6 +51,9 @@ admin.site.register(ProductItem)
 admin.site.register(ProductItemXLicense)
 admin.site.register(ProductXLicense)
 admin.site.register(TemporaryUpload)
+admin.site.register(Contest)
+admin.site.register(ContestEntry)
+
 
 # wagtail
 admin.site.register(Page)
