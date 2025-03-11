@@ -683,6 +683,9 @@ class Contest(models.Model):
     start_date = models.DateTimeField(null=False)
     end_date = models.DateTimeField(null=False)
 
+    def __str__(self):
+        return f"Contest{self.id} | {self.title}"
+
 
 class ContestEntry(models.Model):
     user = models.ForeignKey(User, null=True, blank=True,
@@ -692,7 +695,11 @@ class ContestEntry(models.Model):
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE,
                                 related_name="entries")
     rank = models.PositiveIntegerField(null=True, blank=True)
+    mention = models.BooleanField(default=False)
     # views = 
+
+    class Meta:
+        verbose_name_plural = "Contest Entries"
 
 
 #--------- execute this part only from models.py in the 'main' app-------------
