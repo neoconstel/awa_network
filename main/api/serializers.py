@@ -476,7 +476,17 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class ContestSerializer(serializers.ModelSerializer):
 
+    thumbnail_image = serializers.SerializerMethodField()
+
+    def get_thumbnail_image(self, contest):
+        try:
+            contest.pk # object has id.
+        except:
+            return None
+        
+        image_url = contest.thumbnail_image.resource.url
+        return image_url
+
     class Meta:
         model = Contest
         fields = '__all__'
-        
