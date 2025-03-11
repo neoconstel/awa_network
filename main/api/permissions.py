@@ -133,3 +133,18 @@ class IsProductSellerElseReadOnly(permissions.BasePermission):
         user_permission = request.user and obj.seller.user == request.user
         return user_permission or request.user.is_superuser
     
+
+class IsContestCreatorsGroupMemberOrReadonly(permissions.BasePermission):
+    '''The request allows full access if user is in ContestCreators group, else 
+    it only allows read-only access'''
+
+    def has_object_permission(self, request, view, obj):
+        # if this is a GET, OPTIONS, or HEAD request
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        user_permission = request.user \
+            and request.user.groups.filter(
+                name='ContestCreators').first() != None
+        return user_permission or request.user.is_superuser
+    

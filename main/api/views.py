@@ -11,7 +11,7 @@ from main.models import (
     Artist, Artwork, File, FileType, FileGroup, ArtCategory, Image, Following,
     ReactionType, Reaction, ViewLog, Comment, SiteConfigurations, Review,
     Article, ArticleCategory, ProductCategory, Product, Seller, License,
-    ProductXImage, ProductItem, ProductXLicense, ProductItemXLicense)
+    ProductXImage, ProductItem, ProductXLicense, ProductItemXLicense, Contest)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -21,7 +21,7 @@ from .serializers import (
     ArtworkSerializer, ArtistSerializer, ArtCategorySerializer,
     FollowingSerializer, ReactionSerializer, CommentSerializer,
     ReviewSerializer, ArticleSerializer, ProductSerializer, SellerSerializer,
-    ProductItemSerializer, LicenseSerializer)
+    ProductItemSerializer, LicenseSerializer, ContestSerializer)
 
 # response / status
 from rest_framework.response import Response
@@ -43,7 +43,8 @@ IsCommentAuthorElseReadOnly,
 IsReviewersGroupMemberAndReviewAuthorOrApprovedReadonly,
 IsReviewersGroupMemberOrApprovedReadonly,
 IsArticleCreatorsGroupMemberOrApprovedReadonly,
-IsArticleCreatorsGroupMemberOrReadonly, IsProductSellerElseReadOnly)
+IsArticleCreatorsGroupMemberOrReadonly, IsProductSellerElseReadOnly,
+IsContestCreatorsGroupMemberOrReadonly)
 
 # jwt authentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -1249,4 +1250,38 @@ class LicenseList(APIView):
         serialized_licenses = LicenseSerializer(licenses, many=True).data
         
         return Response(serialized_licenses, status=status.HTTP_200_OK)
+    
+
+class ContestList(mixins.ListModelMixin, mixins.CreateModelMixin,
+                                                generics.GenericAPIView):
+
+    permission_classes = [IsAuthenticatedElseReadOnly]
+    # pagination_class = 
+    ordering = '-id'
+
+    serializer_class = ContestSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return Contest.objects.order_by(self.__class__.ordering).all()
+    
+
+class ContestDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
+                        mixins.DestroyModelMixin, generics.GenericAPIView):
+
+    permission_classes = [IsContestCreatorsGroupMemberOrReadonly]
+
+    queryset = Contest.objects.all()
+    serializer_class = ContestSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+    
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
     

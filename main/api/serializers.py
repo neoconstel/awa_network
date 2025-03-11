@@ -4,7 +4,8 @@ import re
 # models
 from main.models import (Artwork, Artist, ArtCategory, Following, Reaction,
 ViewLog, Comment, Review, ArticleCategory, Article, Product, Seller,
-ProductCategory, ProductRating, ProductItem, License, ProductXLicense)
+ProductCategory, ProductRating, ProductItem, License, ProductXLicense,
+Contest)
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
@@ -471,3 +472,11 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
+
+
+class ContestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Contest
+        fields = '__all__'
+        
