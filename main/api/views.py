@@ -36,6 +36,10 @@ from rest_framework import mixins
 # authentication
 from django.contrib.auth import authenticate, login
 
+# jwt authentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from user.api.views import get_jwt_access_tokens_for_user
+
 # permissions
 from .permissions import (IsAuthenticated, IsAuthenticatedElseReadOnly,
 IsArtworkAuthorElseReadOnly,IsArtistUserElseReadOnly,
@@ -45,10 +49,6 @@ IsReviewersGroupMemberOrApprovedReadonly,
 IsArticleCreatorsGroupMemberOrApprovedReadonly,
 IsArticleCreatorsGroupMemberOrReadonly, IsProductSellerElseReadOnly,
 IsContestCreatorsGroupMemberOrReadonly)
-
-# jwt authentication
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from user.api.views import get_jwt_access_tokens_for_user
 
 # File handling
 import io
@@ -63,7 +63,7 @@ from urllib.parse import urlparse
 from .pagination import (ArtworkPaginationConfig, ArtistPaginationConfig,
 FollowPaginationConfig, ReactionPaginationConfig, CommentPaginationConfig,
 ReviewPaginationConfig, ArticlePaginationConfig, ProductPaginationConfig,
-SellerPaginationConfig)
+SellerPaginationConfig, ContestPaginationConfig)
 
 # caching
 from django.core.cache import cache
@@ -1255,8 +1255,8 @@ class LicenseList(APIView):
 class ContestList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                                 generics.GenericAPIView):
 
-    permission_classes = [IsAuthenticatedElseReadOnly]
-    # pagination_class = 
+    permission_classes = [IsContestCreatorsGroupMemberOrReadonly]
+    pagination_class = ContestPaginationConfig
     ordering = '-id'
 
     serializer_class = ContestSerializer
