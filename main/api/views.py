@@ -1276,7 +1276,7 @@ class ContestDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
     queryset = Contest.objects.all()
     serializer_class = ContestSerializer
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):    
         return self.retrieve(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
@@ -1285,3 +1285,21 @@ class ContestDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
     
+
+class RandomContest(APIView):
+    '''simply get a random contest for display in contest page ad banner'''
+    def get(self, request, *args, **kwargs):
+
+        # get contests with id different from exclude_id
+
+        other_contests = Contest.objects.exclude(id=kwargs['exclude_id'])
+        if other_contests.count() == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        # limit to the last 100 for speed of execution in further operations
+        other_contests_list = list(other_contests)[-100:] 
+        random.shuffle(other_contests_list) # shuffle in-place
+        random_contest = random.choice(other_contests_list)
+
+        data = ContestSerializer(random_contest).data
+        return Response(data, status=status.HTTP_200_OK)

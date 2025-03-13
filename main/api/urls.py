@@ -41,6 +41,7 @@ urlpatterns = [
 
     path('contests/', views.ContestList.as_view(), name='contest_list'),
     path('contest/<int:pk>/', views.ContestDetail.as_view(), name='contest_detail'),
+    path('contest/random/exclude/<int:exclude_id>/', views.RandomContest.as_view(), name='random_contest'),
     
     
     # wagtail admin custom settings API. It may be a good idea to shift this
