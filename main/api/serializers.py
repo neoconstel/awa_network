@@ -1,5 +1,6 @@
 from rest_framework import serializers
 import re
+from django.utils import timezone
 
 # models
 from main.models import (Artwork, Artist, ArtCategory, Following, Reaction,
@@ -477,6 +478,7 @@ class ProductSerializer(serializers.ModelSerializer):
 class ContestSerializer(serializers.ModelSerializer):
 
     thumbnail_image = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
 
     def get_thumbnail_image(self, contest):
         try:
@@ -486,6 +488,33 @@ class ContestSerializer(serializers.ModelSerializer):
         
         image_url = contest.thumbnail_image.resource.url
         return image_url
+    
+
+    def get_status(self, contest):
+        '''string stating whether it is still upcoming, ungoing or finished'''
+        try:
+            contest.pk # object has id.
+        except:
+            return None
+        
+        STATUS_TYPES = {
+            '1': 'upcoming',
+            '2': 'ongoing',
+            '3': 'finished'
+        }
+
+        current_time = timezone.now()
+        start_time_difference = (current_time - contest.start_date).total_seconds()
+        end_time_difference = (current_time - contest.end_date).total_seconds()
+
+        if start_time_difference <= 0:
+            status = STATUS_TYPES['1']
+        elif start_time_difference > 0 and end_time_difference <= 0:
+            status = STATUS_TYPES['2']
+        elif end_time_difference > 0:
+            status = STATUS_TYPES['3']        
+        
+        return status
 
     class Meta:
         model = Contest
