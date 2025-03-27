@@ -548,6 +548,7 @@ class Product(models.Model):
     tags = models.CharField(max_length=200, blank=True, null=True)
     date_published = models.DateTimeField(default=timezone.now)
     licenses = models.ManyToManyField(License, through='ProductXLicense')
+    listed = models.BooleanField(default=True)
 
     '''generic related fields for reverse quering (many to many behaviour)
     note that in the case of <comments>, which is of the Comment model (where
