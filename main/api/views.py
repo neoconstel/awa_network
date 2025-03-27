@@ -1227,6 +1227,42 @@ class ProductDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
         return self.retrieve(request, *args, **kwargs)
     
 
+class UnlistProduct(APIView):
+
+    permission_classes = [IsProductSellerElseReadOnly]
+
+    def post(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+
+        product_id = data['product_id']
+        product = Product.objects.filter(id=product_id).first()
+        if not product:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        product.listed = False
+        product.save()
+        return Response({'executed command':'unlist',
+                         'product id': product_id}, status=status.HTTP_200_OK)
+
+
+class ListProduct(APIView):
+
+    permission_classes = [IsProductSellerElseReadOnly]
+
+    def post(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+
+        product_id = data['product_id']
+        product = Product.objects.filter(id=product_id).first()
+        if not product:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        product.listed = True
+        product.save()
+        return Response({'executed command':'list',
+                         'product id': product_id}, status=status.HTTP_200_OK)
+    
+
 class SellerList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                                 generics.GenericAPIView):
     permission_classes = []

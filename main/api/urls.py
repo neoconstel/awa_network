@@ -38,6 +38,8 @@ urlpatterns = [
     path('resources/sellers/', views.SellerList.as_view(), name='seller_list'),
     path('resources/product/<int:pk>/', views.ProductDetail.as_view(), name='product_detail'),
     path('resources/licenses/', views.LicenseList.as_view(), name='license_list'),
+    path('resources/product/list/', views.ListProduct.as_view(), name='list_product'),
+    path('resources/product/unlist/', views.UnlistProduct.as_view(), name='unlist_product'),
 
     path('contests/', views.ContestList.as_view(), name='contest_list'),
     path('contest/<int:pk>/', views.ContestDetail.as_view(), name='contest_detail'),
