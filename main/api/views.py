@@ -1083,21 +1083,50 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
     serializer_class = ProductSerializer
 
     def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-    
-    def get_queryset(self):
-        seller_alias = self.request.GET.get('seller')
+        return self.list(request, *args, **kwargs)    
 
+    def get_queryset(self):
+        seller = self.request.GET.get('seller') # the seller alias
         products_query = Product.objects
 
-        if seller_alias:
-            try:
-                seller = Seller.objects.get(alias=seller_alias)
-            except Exception as e:
-                return products_query.none()
-            else:
-                products_query = products_query.filter(seller=seller)
+        # only include products if they are listed or belong to user
+        # (even if unlisted), but skip this filter if user is superuser
+        if not self.request.user.is_superuser:
+            products_query = products_query.filter(
+                Q(listed=True) | Q(seller__user__id=self.request.user.id)
+                )
 
+        # filter by seller alias
+        if seller:
+            try:
+                seller = Seller.objects.get(alias=seller)
+                products_query = products_query.filter(seller=seller)
+            except:
+                return Product.objects.none()
+
+        # filter by category tree
+        subcategory_path = self.kwargs.get('subcategory_path')
+        if subcategory_path:
+            '''get all products with one of the following conditions:
+            - its category path starts with the queried subcategory path in
+            terms of url pattern, not just spelling 
+                (e.g /tutorials/books-comics/ starts with /tutorials/
+                    but not with /tutor/)
+                OR
+            - its category path matches the queried subcategory path
+                (e.g /tutorials matches with /tutorials)
+            '''
+            return products_query.filter(
+                # use an ending '/' to ensure that the 'startswith' condition
+                # doesn't get confused with a 'similar-spelling' problem.
+                # Such as where the queried subcategory path is '/tutor' and
+                # it wrongly gets taken as a starting path to
+                # /tutorials/books-comics/, thereby including
+                # products with the path: /tutorials/books-comics/
+                Q(category__path__istartswith=f"/{subcategory_path}/")
+                 |
+                Q(category__path=f"/{subcategory_path}")).order_by(
+                    self.__class__.ordering).all()
         return products_query.order_by(self.__class__.ordering).all()
     
     def post(self, request, *args, **kwargs):
@@ -1176,43 +1205,6 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
         print("ran all product calls successfully")         
 
         return Response(status=status.HTTP_200_OK)
-
-    def get_queryset(self):
-        seller = self.request.GET.get('seller') # the seller alias
-        products_query = Product.objects
-
-        # filter by seller alias
-        if seller:
-            try:
-                seller = Seller.objects.get(alias=seller)
-                products_query = products_query.filter(seller=seller)
-            except:
-                return Product.objects.none()        
-
-        # filter by category tree
-        subcategory_path = self.kwargs.get('subcategory_path')
-        if subcategory_path:
-            '''get all products with one of the following conditions:
-            - its category path starts with the queried subcategory path in
-            terms of url pattern, not just spelling 
-                (e.g /tutorials/books-comics/ starts with /tutorials/
-                    but not with /tutor/)
-                OR
-            - its category path matches the queried subcategory path
-                (e.g /tutorials matches with /tutorials)
-            '''
-            return products_query.filter(
-                # use an ending '/' to ensure that the 'startswith' condition
-                # doesn't get confused with a 'similar-spelling' problem.
-                # Such as where the queried subcategory path is '/tutor' and
-                # it wrongly gets taken as a starting path to
-                # /tutorials/books-comics/, thereby including
-                # products with the path: /tutorials/books-comics/
-                Q(category__path__istartswith=f"/{subcategory_path}/")
-                 |
-                Q(category__path=f"/{subcategory_path}")).order_by(
-                    self.__class__.ordering).all()
-        return products_query.order_by(self.__class__.ordering).all()
 
 
 class ProductDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
