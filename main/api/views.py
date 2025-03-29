@@ -1089,6 +1089,9 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
         seller = self.request.GET.get('seller') # the seller alias
         products_query = Product.objects
 
+        # id of product to exclude (e.g current product on a detail page)
+        exclude_id = self.request.GET.get('exclude_id')
+
         # only include products if they are listed or belong to user
         # (even if unlisted), but skip this filter if user is superuser
         if not self.request.user.is_superuser:
@@ -1103,6 +1106,9 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin,
                 products_query = products_query.filter(seller=seller)
             except:
                 return Product.objects.none()
+            
+        # exclude certain product(s)
+        products_query = products_query.exclude(id=exclude_id)
 
         # filter by category tree
         subcategory_path = self.kwargs.get('subcategory_path')
