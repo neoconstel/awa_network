@@ -1322,6 +1322,9 @@ class ContestDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
 
 class RandomContest(APIView):
     '''simply get a random contest for display in contest page ad banner'''
+
+    permission_classes = []
+
     def get(self, request, *args, **kwargs):
 
         # get contests with id different from exclude_id
