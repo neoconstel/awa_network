@@ -5,6 +5,34 @@
     - verify that delete signals are added anywhere there is ManyToManyFields to ensure automatic CASCADE deletion
 '''
 
+'''
+----Table naming conventions (especially regarding ManyToManyRelationships)----
+Whenever a capital 'X' appears in the midst of a table name, it shows that the 
+table is a through table for a ManyToManyRelationship between the two tables 
+named to the left and right of the 'X'.
+A through table (call it a primary through table) can also be one of the tables 
+in another through table (call it a secondary through table), and in this case
+the name of the secondary through table will be indicated with an 'XX, since it
+is a through table of a higher order. Therefore, a general rule would be to
+take the number of 'X's as the level of the through table in terms of deepness:
+- level 1 through table (initial level) is represented as 'X'
+- level 2 through table (through table for a level 1 through table) is represented as 'XX'
+- level 3 through table (through table for a level 2 through table) is represented as 'XXX'
+- level n through table (through table for a level n-1 through table) is represented as 'X' n times
+A through table for two through tables of different level automatically is a 
+through table for the one with higher level. E.g A through table for a level 2
+and a level 4 through table will be a level 5 through table (XXXXX).
+
+The tables can have names in these different forms, such as:
+
+Product: single table
+ProductItem: single table
+ProductXLicense: through table for Product and License
+ProductItemXLicense: through table for ProductItem and License
+ProductLibraryXXProductXLicense: secondary through table for ProductLibrary and ProductXLicense through table.
+
+'''
+
 
 from django.db import models
 from django.utils import timezone
@@ -655,7 +683,7 @@ class ProductXLicense(models.Model):
 
     def __str__(self):
         return f"ProductXLicense{self.id} | \
-            {self.product.id} X {self.license.id}"
+            {self.product.id} X {self.license.name}"
     
     def clean(self, *args, **kwargs):
         # ensure no two instances have same product and license combination
@@ -672,6 +700,30 @@ class ProductXLicense(models.Model):
 
     class Meta:
         verbose_name_plural = "Product X License"
+
+
+class ProductLibrary(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='product_library')
+    productxlicenses = models.ManyToManyField(ProductXLicense, through='ProductLibraryXXProductXLicense')
+
+    def __str__(self):
+        return f"ProductLibrary{self.id} | \
+            {self.user.username} XX {self.productxlicenses.count()} productxlicenses"
+
+    class Meta:
+        verbose_name_plural = "Product Libraries"
+
+
+class ProductLibraryXXProductXLicense(models.Model):
+    product_library = models.ForeignKey(ProductLibrary, on_delete=models.CASCADE)
+    productxlicense = models.ForeignKey(ProductXLicense, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name_plural = "ProductLibrary XX ProductXLicense"
+
+    def __str__(self):
+        return f"ProductLibraryXXProductXLicense{self.id} | \
+            {self.product_library.id} X {self.productxlicense.id}"
 
 
 class Contest(models.Model):
