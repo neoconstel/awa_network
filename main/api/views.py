@@ -11,7 +11,8 @@ from main.models import (
     Artist, Artwork, File, FileType, FileGroup, ArtCategory, Image, Following,
     ReactionType, Reaction, ViewLog, Comment, SiteConfigurations, Review,
     Article, ArticleCategory, ProductCategory, Product, Seller, License,
-    ProductXImage, ProductItem, ProductXLicense, ProductItemXLicense, Contest)
+    ProductXImage, ProductItem, ProductXLicense, ProductItemXLicense, Contest,
+    ProductLibrary, ProductLibraryXXProductXLicense)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -1244,6 +1245,7 @@ class UnlistProduct(APIView):
 
 
 class ListProduct(APIView):
+    '''mark the product as listed to be publicly viewable in the product gallery'''
 
     permission_classes = [IsProductSellerElseReadOnly]
 
@@ -1340,3 +1342,30 @@ class RandomContest(APIView):
 
         data = ContestSerializer(random_contest).data
         return Response(data, status=status.HTTP_200_OK)
+
+
+class ProductLibraryAdd(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+
+        try:
+            product = Product.objects.get(id=data['product_id'])
+            license = License.objects.get(id=data['license_id'])
+            productxlicense = ProductXLicense.objects.get(product=product, license=license)
+        except:
+            return Response({'error':'no product with this license'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        user_product_library, created = \
+            ProductLibrary.objects.get_or_create(user=request.user)
+        
+        product_libraryXXproductxlicense, created = \
+            ProductLibraryXXProductXLicense.objects.get_or_create(
+                product_library=user_product_library, 
+                productxlicense=productxlicense)
+        if created:
+            return Response({'message':'added to library'},status=status.HTTP_201_CREATED)
+        return Response({'message': 'already added'}, status=status.HTTP_200_OK)
