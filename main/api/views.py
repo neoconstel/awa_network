@@ -1392,16 +1392,25 @@ class ProductLibraryList(APIView):
                             status=status.HTTP_200_OK)
         
         else:
+
             # if fetching for a specific product
             if product_id:
                 productxlicenses = user_product_library.productxlicenses.filter(
                     product_id=product_id
                 )
-                license_converter = lambda x:x.license
-                licenses = list(map(license_converter,productxlicenses))
+                productxlicenses_to_licenses = lambda x:x.license                
+                licenses = list(map(productxlicenses_to_licenses,productxlicenses))
                 return Response(LicenseSerializer(licenses,many=True).data,
                                 status=status.HTTP_200_OK)
-
-
-
             
+            # fetching for all products which user has added to library
+            else:
+                productxlicenses = user_product_library.productxlicenses.all()
+                productxlicenses_to_products_and_licenses = lambda x:{
+                    'product': ProductSerializer(x.product, many=False).data,
+                    'owned_license': LicenseSerializer(x.license, many=False).data
+                }
+                products_and_licenses = list(map(
+                    productxlicenses_to_products_and_licenses,productxlicenses))
+                return Response(products_and_licenses,
+                                status=status.HTTP_200_OK)
