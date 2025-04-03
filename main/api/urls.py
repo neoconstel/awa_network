@@ -41,6 +41,7 @@ urlpatterns = [
     path('resources/product/list/', views.ListProduct.as_view(), name='list_product'),
     path('resources/product/unlist/', views.UnlistProduct.as_view(), name='unlist_product'),
     path('resources/product/library/add/', views.ProductLibraryAdd.as_view(), name='product_library_add'),
+    path('resources/product/library/list/', views.ProductLibraryList.as_view(), name='product_library_list'),
 
     path('contests/', views.ContestList.as_view(), name='contest_list'),
     path('contest/<int:pk>/', views.ContestDetail.as_view(), name='contest_detail'),

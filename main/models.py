@@ -723,7 +723,7 @@ class ProductLibraryXXProductXLicense(models.Model):
 
     def __str__(self):
         return f"ProductLibraryXXProductXLicense{self.id} | \
-            {self.product_library.id} X {self.productxlicense.id}"
+            {self.product_library.id} XX {self.productxlicense}"
 
 
 class Contest(models.Model):

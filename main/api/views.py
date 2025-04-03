@@ -1345,6 +1345,7 @@ class RandomContest(APIView):
 
 
 class ProductLibraryAdd(APIView):
+    '''adds a license for a product to the user's product library'''
 
     permission_classes = [IsAuthenticated]
 
@@ -1369,3 +1370,38 @@ class ProductLibraryAdd(APIView):
         if created:
             return Response({'message':'added to library'},status=status.HTTP_201_CREATED)
         return Response({'message': 'already added'}, status=status.HTTP_200_OK)
+    
+
+class ProductLibraryList(APIView):
+    '''list all the product licenses in this user's product library, or for a 
+    specific product if the product_id is specified as a query parameter'''
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        product_id = request.GET.get('product_id')
+
+        user_product_library = ProductLibrary.objects.filter(
+            user=request.user).first()
+        
+        if not user_product_library:
+            # data returned should depend on if fetching for a specific product
+            # or not, to decide whether to use a list or not
+            empty_data = None if product_id else []
+            return Response(empty_data,
+                            status=status.HTTP_200_OK)
+        
+        else:
+            # if fetching for a specific product
+            if product_id:
+                productxlicenses = user_product_library.productxlicenses.filter(
+                    product_id=product_id
+                )
+                license_converter = lambda x:x.license
+                licenses = list(map(license_converter,productxlicenses))
+                return Response(LicenseSerializer(licenses,many=True).data,
+                                status=status.HTTP_200_OK)
+
+
+
+            
