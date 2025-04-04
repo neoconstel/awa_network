@@ -38,6 +38,7 @@ urlpatterns = [
     re_path(r'^django-admin/*', admin.site.urls),
     re_path(r'^auth/*', include('user.api.urls')),
     re_path(r'^api/*', include('main.api.urls')),
+    re_path(r'^resource/*', include('main.api.urls')),
 
     re_path(r'^admin/*', include(wagtailadmin_urls)),
     re_path(r'documents/*', include(wagtaildocs_urls)),
