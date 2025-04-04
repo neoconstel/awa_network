@@ -1418,27 +1418,16 @@ class ProductLibraryList(APIView):
 
 
 class ProductDownload(APIView):
-    permission_class = [IsAuthenticated]
+    # permissions are removed so anonymous users can download free resources
+    permission_classes = []
 
     def get(self, request, *args, **kwargs):
         
         product_id = kwargs.get('product_id')
         license_id = kwargs.get('license_id')
         file_id = kwargs.get('file_id')
-        
 
-        # if this returns None, it means user has no rights to this
-        # license for this particular product, and thus no rights to 
-        # any file under this license for this particular product
-        productxlicense = request.user.product_library.productxlicenses.filter(
-            product__id=product_id, license__id=license_id).first()
-        
-        if not productxlicense:
-            return Response({
-                'error' : 'user has no ownership of this license for this product'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        
-        # now, get the product_item having this product, license and file
+        # first get the product_item having this product, license and file
         try:
             product_item = ProductItem.objects.get(
                 product__id=product_id,
@@ -1446,13 +1435,33 @@ class ProductDownload(APIView):
                 file__id=file_id)
         except:
             return Response({
-                'error' : 'this product has no file of given file_id under the given'
-                'license'},
-                            status=status.HTTP_400_BAD_REQUEST)
+                'error' : 'no such product with the given license and file'},
+                            status=status.HTTP_404_NOT_FOUND)
+        
+        # now that the product, license and file are confirmed, do a quick
+        # check if the license is free, so as to skip further authentication
+        # checks if required and thus make it possible for anonymous users
+        # (not signed in) to download free resources without needing to login
+        license = License.objects.get(id=license_id)
+        if not license.name.lower() == 'free':
+            if not request.user.is_authenticated:
+                return Response({
+                    'error' : 'you must be logged in to download this resource!'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            # if this returns None, it means user has no rights to this
+            # license for this particular product, and thus no rights to 
+            # any file under this license for this particular product
+            productxlicense = request.user.product_library.productxlicenses.filter(
+                product__id=product_id, license__id=license_id).first()
+            
+            if not productxlicense:
+                return Response({
+                    'error' : 'user has no ownership of this license for this product'},
+                                status=status.HTTP_400_BAD_REQUEST)
         
         file = File.objects.get(id=file_id)
-        file_path = file.resource.path
-        
+        file_path = file.resource.path        
 
         return FileResponse(
             open(file_path, 'rb'), as_attachment=True, filename=file.filename)
