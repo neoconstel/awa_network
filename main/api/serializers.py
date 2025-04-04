@@ -387,6 +387,7 @@ class ProductItemSerializer(serializers.ModelSerializer):
             return None
         
         return{
+            'id': object.file.id,
             'name': object.file.filename,
             'size': object.file.filesize,
             'extension': object.file.extension

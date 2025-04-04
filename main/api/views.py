@@ -28,6 +28,7 @@ from .serializers import (
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
+from django.http import FileResponse
 
 # class-based API views
 from rest_framework.views import APIView
@@ -1414,3 +1415,45 @@ class ProductLibraryList(APIView):
                     productxlicenses_to_products_and_licenses,productxlicenses))
                 return Response(products_and_licenses,
                                 status=status.HTTP_200_OK)
+
+
+class ProductDownload(APIView):
+    permission_class = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        
+        product_id = kwargs.get('product_id')
+        license_id = kwargs.get('license_id')
+        file_id = kwargs.get('file_id')
+        
+
+        # if this returns None, it means user has no rights to this
+        # license for this particular product, and thus no rights to 
+        # any file under this license for this particular product
+        productxlicense = request.user.product_library.productxlicenses.filter(
+            product__id=product_id, license__id=license_id).first()
+        
+        if not productxlicense:
+            return Response({
+                'error' : 'user has no ownership of this license for this product'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        # now, get the product_item having this product, license and file
+        try:
+            product_item = ProductItem.objects.get(
+                product__id=product_id,
+                licenses__id=license_id,
+                file__id=file_id)
+        except:
+            return Response({
+                'error' : 'this product has no file of given file_id under the given'
+                'license'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        file = File.objects.get(id=file_id)
+        file_path = file.resource.path
+        
+
+        return FileResponse(
+            open(file_path, 'rb'), as_attachment=True, filename=file.filename)
+    

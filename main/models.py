@@ -663,7 +663,7 @@ class ProductItemXLicense(models.Model):
 
     def __str__(self):
         return f"ProductItemXLicense{self.id} | \
-            {self.product_item.id} X {self.license.id}"
+            {self.product_item.id} X {self.license.name}"
 
     class Meta:
         verbose_name_plural = "ProductItem X License"
