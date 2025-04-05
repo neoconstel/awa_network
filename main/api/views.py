@@ -1418,6 +1418,10 @@ class ProductLibraryList(APIView):
 
 
 class ProductDownload(APIView):
+    '''TODO: the error responses in this view should be API responses, NOT
+    rendered templates. The solution currently employed is just used as a
+    quick fix at the moment, and should be handled by the frontend instead.'''
+
     # permissions are removed so anonymous users can download free resources
     permission_classes = []
 
@@ -1434,9 +1438,9 @@ class ProductDownload(APIView):
                 licenses__id=license_id,
                 file__id=file_id)
         except:
-            return Response({
-                'error' : 'no such product with the given license and file'},
-                            status=status.HTTP_404_NOT_FOUND)
+            error_msg = 'no such product with the given license and file'
+            return render(request, 'main/download_restricted.html',
+                          {'error_msg':error_msg})
         
         # now that the product, license and file are confirmed, do a quick
         # check if the license is free, so as to skip further authentication
@@ -1445,9 +1449,9 @@ class ProductDownload(APIView):
         license = License.objects.get(id=license_id)
         if not license.name.lower() == 'free':
             if not request.user.is_authenticated:
-                return Response({
-                    'error' : 'you must be logged in to download this resource!'},
-                                status=status.HTTP_400_BAD_REQUEST)
+                error_msg = 'you must be logged in to download this resource!'
+                return render(request, 'main/download_restricted.html',
+                          {'error_msg':error_msg})
 
             # if this returns None, it means user has no rights to this
             # license for this particular product, and thus no rights to 
@@ -1456,9 +1460,9 @@ class ProductDownload(APIView):
                 product__id=product_id, license__id=license_id).first()
             
             if not productxlicense:
-                return Response({
-                    'error' : 'user has no ownership of this license for this product'},
-                                status=status.HTTP_400_BAD_REQUEST)
+                error_msg = 'user has no ownership of this license for this product'
+                return render(request, 'main/download_restricted.html',
+                          {'error_msg':error_msg})
         
         file = File.objects.get(id=file_id)
         file_path = file.resource.path        
