@@ -149,6 +149,11 @@ class ResourcesPage(BasePage):
     max_count = 1
 
 
+class MeetupPage(BasePage):
+    parent_page_types = ['main.HomePage']
+    max_count = 1
+
+
 class PortfolioPage(BasePage):
     parent_page_types = ['main.HomePage']
     max_count = 1
