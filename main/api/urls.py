@@ -10,6 +10,7 @@ urlpatterns = [
     path('artists/', views.ArtistList.as_view(), name='artist_list'),
     path('artist/<int:pk>/', views.ArtistDetail.as_view(), name='artist_detail'),
     path('artist/<str:username>/', views.ArtistDetail.as_view(), name='artist_detail'),
+    path('artist/profile/save/', views.ArtistProfileSave.as_view(), name='artist_save'),
 
     path('art-categories/', views.ArtCategoryList.as_view(), name='art_category_list'),
 

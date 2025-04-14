@@ -22,7 +22,8 @@ from .serializers import (
     ArtworkSerializer, ArtistSerializer, ArtCategorySerializer,
     FollowingSerializer, ReactionSerializer, CommentSerializer,
     ReviewSerializer, ArticleSerializer, ProductSerializer, SellerSerializer,
-    ProductItemSerializer, LicenseSerializer, ContestSerializer)
+    ProductItemSerializer, LicenseSerializer, ContestSerializer,
+    UserReadOnlySerializer)
 
 # response / status
 from rest_framework.response import Response
@@ -1469,4 +1470,46 @@ class ProductDownload(APIView):
 
         return FileResponse(
             open(file_path, 'rb'), as_attachment=True, filename=file.filename)
+
+
+class ArtistProfileSave(APIView):
+    '''updates the artist and user instances based on changes made in the
+    ArtistPortfolio page at the frontend'''
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+
+        try:
+            first_name = data['firstName']
+            last_name = data['lastName']
+            location = data['location']
+            bio = data['bio']
+            website = data['website']
+            tools = data['tools']
+        except:
+            return Response(
+                {'error':'error saving profile. ensure to submit required fields'},
+                status=status.HTTP_400_BAD_REQUEST)
+
+        # save artist fields
+        artist = Artist.objects.get(user=request.user)
+        artist.location = location
+        artist.bio = bio
+        artist.website = website
+        artist.tools = tools
+        artist.save()
+
+        # save user fields
+        artist.user.first_name = first_name
+        artist.user.last_name = last_name
+        artist.user.save()
+        
+
+        return Response({
+            'msg': 'profile save successful',
+            'artist': ArtistSerializer(artist).data,
+            'user': UserReadOnlySerializer(artist.user).data},
+                                status=status.HTTP_200_OK)
     
