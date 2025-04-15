@@ -1280,6 +1280,30 @@ class SellerList(mixins.ListModelMixin, mixins.CreateModelMixin,
         return Seller.objects.order_by(self.__class__.ordering).all()
     
 
+class SellerDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
+                        mixins.DestroyModelMixin, generics.GenericAPIView):
+
+    permission_classes = [IsProductSellerElseReadOnly]
+
+    queryset = Seller.objects.all()
+    serializer_class = SellerSerializer
+
+    def get(self, request, *args, **kwargs):        
+        # get by 'alias' in addition to the default 'pk'
+        alias = kwargs.get("alias")
+        if alias:
+            seller = Seller.objects.filter(alias=alias).first()
+            serializer = SellerSerializer(seller, data={})
+            if serializer.is_valid() and seller:
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
+
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+    
+
 class LicenseList(APIView):
     permission_classes = []
 

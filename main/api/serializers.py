@@ -350,6 +350,17 @@ class SellerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Seller
         fields = '__all__'
+    
+    # make these fields required only at write requests, but not read requests
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and request.method in ['POST', 'PUT', 'PATCH']:
+            self.fields['alias'].required = True
+            self.fields['brand_name'].required = True
+        else:
+            self.fields['alias'].required = False
+            self.fields['brand_name'].required = False
 
 
 class ProductRatingSerializer(serializers.ModelSerializer):
