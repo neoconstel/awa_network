@@ -1289,7 +1289,7 @@ class SellerDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
     serializer_class = SellerSerializer
 
     def get(self, request, *args, **kwargs):        
-        # get by 'alias' in addition to the default 'pk'
+        # get seller by 'alias' in addition to the default 'pk'
         alias = kwargs.get("alias")
         if alias:
             seller = Seller.objects.filter(alias=alias).first()
@@ -1297,7 +1297,22 @@ class SellerDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
             if serializer.is_valid() and seller:
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
+        
+        # get seller instance of current user if no alias and no pk (from url)
+        elif request.user.is_authenticated and not kwargs.get("pk"):
+            seller = Seller.objects.filter(user=request.user).first()
+            if seller:
+                return Response(SellerSerializer(seller).data,
+                                status=status.HTTP_200_OK)
+            else:
+                return Response({}, status=status.HTTP_200_OK)
+        
+        elif (not request.user.is_authenticated) and (not kwargs.get("pk")):
+            return Response({'error': 'must be logged in to use this endpoint'},
+                            status=status.HTTP_401_UNAUTHORIZED)
 
+
+        # return seller instance based on pk supplied in url params
         return self.retrieve(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):

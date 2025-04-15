@@ -39,6 +39,7 @@ urlpatterns = [
     path('resources/sellers/', views.SellerList.as_view(), name='seller_list'),
     path('resources/seller/<int:pk>/', views.SellerDetail.as_view(), name='seller_detail'),
     path('resources/seller/<str:alias>/', views.SellerDetail.as_view(), name='seller_detail'),
+    path('resources/seller/', views.SellerDetail.as_view(), name='seller_detail'),
     path('resources/product/<int:pk>/', views.ProductDetail.as_view(), name='product_detail'),
     path('resources/licenses/', views.LicenseList.as_view(), name='license_list'),
     path('resources/product/list/', views.ListProduct.as_view(), name='list_product'),
