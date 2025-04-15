@@ -1267,7 +1267,7 @@ class ListProduct(APIView):
 
 class SellerList(mixins.ListModelMixin, mixins.CreateModelMixin,
                                                 generics.GenericAPIView):
-    permission_classes = []
+    permission_classes = [IsAuthenticatedElseReadOnly]
     pagination_class = SellerPaginationConfig
     ordering = '-id'
 
@@ -1278,6 +1278,36 @@ class SellerList(mixins.ListModelMixin, mixins.CreateModelMixin,
 
     def get_queryset(self):
         return Seller.objects.order_by(self.__class__.ordering).all()
+    
+    def post(self, request, *args, **kwargs):
+
+        # get dictionary equivalent of POST data and add additional data
+        data = request.POST.dict()
+        data['user'] = request.user
+
+        # first ensure that current user has no seller instance
+        existing_seller_profile = Seller.objects.filter(user=request.user).first()
+        if existing_seller_profile:
+            return Response({'error': 'user has existing seller profile'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        # also ensure that this alias is not already owned elsewhere
+        duplicate_seller_credentials = Seller.objects.filter(
+            Q(alias=data.get('alias'))|Q(brand_name=data.get('brand_name'))
+        ).first()
+        if duplicate_seller_credentials:
+            return Response({'error': 'a seller profile already exists with these credentials'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            seller = Seller(**data)
+        except:
+            return Response({'error': 'incorrect/incomplete seller fields given'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        else:
+            seller.save()
+            return Response(SellerSerializer(seller).data,
+                status=status.HTTP_201_CREATED)    
     
 
 class SellerDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
