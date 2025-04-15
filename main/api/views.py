@@ -1479,37 +1479,44 @@ class ArtistProfileSave(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        data = json.loads(request.body)
+        data = request.POST.dict()
 
         try:
-            first_name = data['firstName']
-            last_name = data['lastName']
+            first_name = data['firstName'].strip()
+            last_name = data['lastName'].strip()
             location = data['location']
             bio = data['bio']
             website = data['website']
             tools = data['tools']
+            profile_image = request.FILES.get('profileImage')
+
+            wrapped_profile_image = DjangoFile(profile_image)
+
+            assert first_name != ''
+            assert last_name != ''
         except:
             return Response(
                 {'error':'error saving profile. ensure to submit required fields'},
                 status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # save artist fields
+            artist = Artist.objects.get(user=request.user)
+            artist.location = location
+            artist.bio = bio
+            artist.website = website
+            artist.tools = tools
+            artist.save()
 
-        # save artist fields
-        artist = Artist.objects.get(user=request.user)
-        artist.location = location
-        artist.bio = bio
-        artist.website = website
-        artist.tools = tools
-        artist.save()
+            # save user fields
+            artist.user.first_name = first_name
+            artist.user.last_name = last_name
+            if profile_image:
+                artist.user.profile_image = wrapped_profile_image
+            artist.user.save()
 
-        # save user fields
-        artist.user.first_name = first_name
-        artist.user.last_name = last_name
-        artist.user.save()
-        
-
-        return Response({
-            'msg': 'profile save successful',
-            'artist': ArtistSerializer(artist).data,
-            'user': UserReadOnlySerializer(artist.user).data},
-                                status=status.HTTP_200_OK)
+            return Response({
+                'msg': 'profile save successful',
+                'artist': ArtistSerializer(artist).data,
+                'user': UserReadOnlySerializer(artist.user).data},
+                                    status=status.HTTP_200_OK)
     
