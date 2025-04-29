@@ -1353,7 +1353,10 @@ class LicenseList(APIView):
     permission_classes = []
 
     def get(self, request):
-        licenses = License.objects.all()
+        # TEMPORARY: only make free license available for now
+        licenses = License.objects.filter(free=True).all()
+
+        
         serialized_licenses = LicenseSerializer(licenses, many=True).data
         
         return Response(serialized_licenses, status=status.HTTP_200_OK)
