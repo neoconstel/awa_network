@@ -1523,11 +1523,17 @@ class ProductDownload(APIView):
                 return render(request, 'main/download_restricted.html',
                           {'error_msg':error_msg})
 
-            # if this returns None, it means user has no rights to this
-            # license for this particular product, and thus no rights to 
-            # any file under this license for this particular product
-            productxlicense = request.user.product_library.productxlicenses.filter(
-                product__id=product_id, license__id=license_id).first()
+            try:
+                # if this returns None, it means user has no rights to this
+                # license for this particular product, and thus no rights to 
+                # any file under this license for this particular product.
+                # Even if user might have a product library already.
+                productxlicense = request.user.product_library.productxlicenses.filter(
+                    product__id=product_id, license__id=license_id).first()
+            except:
+                # user has no product library hence no rights to 
+                # any file under this license for this product
+                productxlicense = None
             
             if not productxlicense:
                 error_msg = 'user has no ownership of this license for this product'
