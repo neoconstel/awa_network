@@ -1,5 +1,8 @@
 # AwA-Network Backend
 
+## Link to temporary site:
+https://neoconstel.pythonanywhere.com/
+
 ## How to run this project in development mode
 
 - activate the virtual environment: pipenv shell
