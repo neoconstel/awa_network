@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'import_export',
     'wagtail.api.v2',
     'django_drf_filepond',
+    'imagekit',
 
     'core',
     'user',

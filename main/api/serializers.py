@@ -55,6 +55,7 @@ class ArtworkSerializer(serializers.ModelSerializer):
     # custom serializer field
     file_url = serializers.SerializerMethodField()
     views = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
 
     # custom serializer field method to get property
     # syntax: get_<custom serializer field name>
@@ -68,6 +69,18 @@ class ArtworkSerializer(serializers.ModelSerializer):
             return ""
         else:
             return f"{object.content_object.resource.url}"
+        
+
+    def get_thumbnail_url(self, object):
+        '''returns the reduced version of the original image, which is cached
+        and optimized for faster loading when used as a thumbnail'''
+        try:
+            object.pk # object has id.
+        except:
+            return ""
+        else:
+            return f"{object.content_object.thumbnail.url}"
+
 
     # nested field: nest artist serializer into this
     artist = ArtistSerializer(many=False, read_only=True)
@@ -87,7 +100,9 @@ class ArtworkSerializer(serializers.ModelSerializer):
         model = Artwork
         fields = '__all__'
 
-        '''I exclude content_type and object_id because they remain 'required'
+        '''
+        OLD DOCUMENTATION (TO BE DELETED LATER AS IT IS NOW IMPROVED):
+        I exclude content_type and object_id because they remain 'required'
         even after setting 'required' to False in extra_kwargs. Even though
         excluded, they are still writable but not visible in JSON output.
 

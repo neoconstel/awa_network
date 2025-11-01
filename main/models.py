@@ -41,8 +41,13 @@ import random
 import re
 import json
 
+# custom user model
 from django.contrib.auth import get_user_model
 User = get_user_model()
+
+# image optimization
+from imagekit.models import ImageSpecField
+from imagekit.processors import ResizeToFill
 
 # Generic Foreign Key Relationships
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -311,6 +316,14 @@ class Image(models.Model):
     file_group = models.ForeignKey(FileGroup, on_delete=models.CASCADE)
     resource = models.ImageField(upload_to=save_path)
     upload_date = models.DateTimeField(default=timezone.now)
+
+    # This creates a W by H thumbnail automatically when accessed
+    thumbnail = ImageSpecField(
+        source='resource',
+        processors=[ResizeToFill(300, 300)],
+        format='JPEG',
+        options={'quality': 80}
+    )
 
     # generic related fields for reverse quering
     artwork = GenericRelation(Artwork, related_query_name='image_object')
