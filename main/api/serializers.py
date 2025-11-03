@@ -308,7 +308,8 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     html_url = serializers.SerializerMethodField()
 
-    thumbnail_url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField() # optimized image
+    raw_thumbnail_url = serializers.SerializerMethodField() # original/unoptimized
 
     def get_html_url(self,object):
         try:
@@ -318,13 +319,21 @@ class ArticleSerializer(serializers.ModelSerializer):
         
         return object.html_file.resource.url
     
-    def get_thumbnail_url(self,object):
+    def get_raw_thumbnail_url(self,object):
         try:
             object.pk # object has id.
         except:
             return None
         
         return object.thumbnail_image.resource.url
+    
+    def get_thumbnail_url(self,object):
+        try:
+            object.pk # object has id.
+        except:
+            return None
+        
+        return object.thumbnail_image.thumbnail.url
     
     class Meta:
         model = Article
