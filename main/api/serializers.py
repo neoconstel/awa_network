@@ -213,6 +213,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     caption_media_type = serializers.SerializerMethodField()
     body_media_type = serializers.SerializerMethodField()
     caption_media_url = serializers.SerializerMethodField()
+    caption_media_thumbnail_url = serializers.SerializerMethodField()
     body_media_url = serializers.SerializerMethodField()
     # caption_media_model = serializers.SerializerMethodField()
     # body_media_model = serializers.SerializerMethodField()
@@ -260,6 +261,23 @@ class ReviewSerializer(serializers.ModelSerializer):
         except:
             return None
         
+        return object.caption_media_object.resource.url
+    
+    def get_caption_media_thumbnail_url(self,object):
+        '''return compressed thumbnail image if the caption media is an image
+        else return the resource url as it is'''
+        try:
+            object.pk # object has id.
+        except:
+            return None
+        
+        model_name = ContentType.objects.get_for_model(
+            object.caption_media_object).model
+        if model_name == 'image':
+            # return the compressed thumbnail image
+            return object.caption_media_object.thumbnail.url
+        
+        # model isn't image. Return the resource url without image compression
         return object.caption_media_object.resource.url
 
     def get_body_media_url(self,object):
