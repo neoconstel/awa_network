@@ -455,6 +455,7 @@ class ProductItemSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
 
     thumbnail_images = serializers.SerializerMethodField()
+    raw_thumbnail_images = serializers.SerializerMethodField()
     category = ProductCategorySerializer(many=False)
     seller = SellerSerializer(many=False)
     ratings = serializers.SerializerMethodField()
@@ -472,7 +473,17 @@ class ProductSerializer(serializers.ModelSerializer):
             return None
         
         image_urls = list(map(
-            lambda i:i.resource.url, product.thumbnail_images.all()))
+            lambda image:image.thumbnail.url, product.thumbnail_images.all()))
+        return image_urls
+    
+    def get_raw_thumbnail_images(self, product):
+        try:
+            product.pk # object has id.
+        except:
+            return None
+        
+        image_urls = list(map(
+            lambda image:image.resource.url, product.thumbnail_images.all()))
         return image_urls
     
     def get_ratings(self, product):
