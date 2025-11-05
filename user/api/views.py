@@ -133,8 +133,11 @@ class Login(APIView):
         # -----session auth (useful for 'don't remember me' login)------
         '''saves a session cookie containing sessionid. Expires after 2 weeks
         by default, unless SESSION_EXPIRE_AT_BROWSER_CLOSE = True is set in
-        settings.py in which case it gets deleted once browser is closed.'''
-        login(request, user)
+        settings.py in which case it gets deleted once browser is closed.
+        
+        The optional BACKEND argument is needed if using multiple backends and
+        django needs to know which one to use e.g the default or google auth'''
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
         # -----JWT auth (via persistently saved authentication cookies)-----
         tokens = get_jwt_access_tokens_for_user(user)

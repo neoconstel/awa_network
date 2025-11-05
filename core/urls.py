@@ -36,6 +36,7 @@ from django.conf import settings
 
 urlpatterns = [
     re_path(r'^django-admin/*', admin.site.urls),
+    path('accounts/', include('allauth.urls')),  # ✅ Required for login/logout routes (for google glient)
     re_path(r'^auth/*', include('user.api.urls')),
     re_path(r'^api/*', include('main.api.urls')),
     re_path(r'^resource/*', include('main.api.urls')),
