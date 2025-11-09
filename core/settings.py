@@ -51,12 +51,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # django-allauth
-    'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
 
     'rest_framework',
     'corsheaders',
@@ -68,6 +62,13 @@ INSTALLED_APPS = [
     'core',
     'user',
     'main',
+    
+    # django-allauth (should come AFTER custom apps for the templates to be overwritable)
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 
     # wagtail apps (wagtail users app should be below custom user app)
     'wagtail.contrib.forms',
@@ -111,7 +112,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -275,7 +276,7 @@ WAGTAIL_USER_CUSTOM_FIELDS = [
      'is_active', 'is_verified', 'profile_image', 'bio', 'membership']
 
 
-# django-allauth
+# DJANGO-ALLAUTH SETTINGS
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Django’s default
@@ -298,5 +299,12 @@ SOCIAL_AUTH_GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
 SOCIAL_AUTH_GOOGLE_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
 
 # (Optional) Security
-# ACCOUNT_EMAIL_VERIFICATION = 'none'
 # ACCOUNT_EMAIL_REQUIRED = True
+
+SOCIALACCOUNT_AUTO_SIGNUP = True
+ACCOUNT_EMAIL_VERIFICATION = "none"  # optional
+ACCOUNT_UNIQUE_EMAIL = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+
+# Important: Allow linking if manually-created email matches the social login
+SOCIALACCOUNT_ADAPTER = "core.adapters.MySocialAccountAdapter"

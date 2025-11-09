@@ -2,6 +2,9 @@
 from django.core.signals import request_finished
 from django.db.models.signals import pre_save, post_save, pre_delete, post_delete
 
+# third-party signals
+from allauth.account.signals import user_signed_up
+
 # custom signals
 import django.dispatch
 new_following = django.dispatch.Signal()
@@ -169,4 +172,11 @@ def product_item_listener(sender, **kwargs):
     model_instance.file.delete()
 
     print(f'\n\n\nEXECUTED SIGNAL: product_item file deleted\n\n\n')
+
+
+@receiver(user_signed_up)
+def user_signed_up_listener(request, user, **kwargs):
+    # activate user since google auth is automatic proof that email is valid
+    user.is_active = True
+    user.save()
     
