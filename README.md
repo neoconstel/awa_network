@@ -13,9 +13,11 @@ https://neoconstel.pythonanywhere.com/
 
 ## Database setups (these will be automated in future updates)
 
-### django-allauth
+## wagtail
 
-- migrate
+- In wagtail admin, create a Homepage and set it as the ROOT of the wagtail site
+
+### django-allauth
 
 - In django admin, under the "social accounts" app -> social applications -> add social application
 
