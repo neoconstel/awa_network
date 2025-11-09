@@ -12,7 +12,7 @@ from main.models import (
     ReactionType, Reaction, ViewLog, Comment, SiteConfigurations, Review,
     Article, ArticleCategory, ProductCategory, Product, Seller, License,
     ProductXImage, ProductItem, ProductXLicense, ProductItemXLicense, Contest,
-    ProductLibrary, ProductLibraryXXProductXLicense)
+    ProductLibrary, ProductLibraryXXProductXLicense, ArtworkVariant)
 from user.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -118,6 +118,7 @@ class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
         data['artist'] = self.request.user.artist
 
         # print(f"ORDERED_DICT: {data}\n\n\n")
+        # print(f"FILES: {request.FILES}\n\n\n")
         '''
         print(data) give data in this form:
 
@@ -165,7 +166,25 @@ class ArtworkList(mixins.ListModelMixin, mixins.CreateModelMixin,
             artwork.save()
 
             output_data = serializer.data
-            output_data["file_url"] = artwork.content_object.resource.url           
+            output_data["file_url"] = artwork.content_object.resource.url
+
+            # create artwork variants if variant images are present
+            for slot in range(1, 4):
+                try:
+                    wrapped_request_variant = DjangoFile(request.FILES[f"variant_{slot}"])
+                except:
+                    pass
+                else:
+                    ArtworkVariant.objects.create(
+                        artwork=artwork,
+                        slot=slot,
+                        image=wrapped_request_variant
+                    )
+
+            # delete these 2 lines below
+            # wrapped_request_file = DjangoFile(request.FILES['file'])
+            # file = Image(
+            #         file_group=file_group,resource=wrapped_request_file)
 
             return Response(output_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
