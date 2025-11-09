@@ -225,6 +225,37 @@ class Artwork(models.Model):
 
     def __str__(self):
         return f"Artwork{self.id} ({self.title})"
+    
+
+class ArtworkVariant(models.Model):
+
+    def save_path(instance, filename):
+        '''
+        TODO:
+        THIS WAS HASTILY MADE AS A RUSHED DUPLICATE OF THE save_path function
+        in Image. Should be later deprecated and Image should hold the
+        resource instead of creating a new resource field for ArtworkVariant
+
+        instance: the Image instance
+        filename: the original name of the resource e.g "Itachi.png"
+        '''
+
+        # image will be uploaded to MEDIA_ROOT/media_group/image/filename
+        # e.g /media/artworks/image/Itachi.png
+        return (
+            f'artworkvariants/'            
+            f'image/{random.randint(1000000, 9999999)}'
+            f'_{time.strftime("%b-%d-%Y__%H-%M-%S__%z")}'
+            f'_{filename}'
+        )
+    
+    artwork = models.ForeignKey(Artwork, on_delete=models.CASCADE)
+    slot = models.SmallIntegerField()
+    # image = models.ManyToManyField(Image, through='ArtworkVariantXImage')
+    image = models.ImageField(upload_to=save_path)
+
+    def __str__(self):
+        return f"ArtworkVariant{self.id}, slot {self.slot}, artwork: {self.artwork.id}"
 
 
 class File(models.Model):
