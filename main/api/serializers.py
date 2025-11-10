@@ -6,7 +6,7 @@ from django.utils import timezone
 from main.models import (Artwork, Artist, ArtCategory, Following, Reaction,
 ViewLog, Comment, Review, ArticleCategory, Article, Product, Seller,
 ProductCategory, ProductRating, ProductItem, License, ProductXLicense,
-Contest)
+Contest, ArtworkVariant)
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
@@ -50,12 +50,23 @@ class ArtistSerializer(serializers.ModelSerializer):
         }
 
 
+class ArtworkVariantSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ArtworkVariant
+        fields = '__all__'
+        extra_kwargs = {
+            
+        }
+
+
 class ArtworkSerializer(serializers.ModelSerializer):
 
     # custom serializer field
     file_url = serializers.SerializerMethodField()
     views = serializers.SerializerMethodField()
     thumbnail_url = serializers.SerializerMethodField()
+    variants = serializers.SerializerMethodField()
 
     # custom serializer field method to get property
     # syntax: get_<custom serializer field name>
@@ -80,6 +91,32 @@ class ArtworkSerializer(serializers.ModelSerializer):
             return ""
         else:
             return f"{object.content_object.thumbnail.url}"
+        
+    
+    def get_variants(self, object):
+        '''return the image urls of the artwork's variants'''
+        try:
+            object.pk # object has id.
+        except:
+            return ""
+        else:
+            artwork_variants = ArtworkVariant.objects.filter(
+                artwork__id=object.pk).all()
+            serialized_variants = ArtworkVariantSerializer(artwork_variants, many=True).data
+
+            # output relevant data only
+            output = [variant['image'] for variant in serialized_variants]
+            return output
+            
+
+
+
+            # variant_url_1 = ArtworkVariant.objects.get(
+            #     artwork.id=object.pk,
+            #     slot=1
+            # )
+
+            # return f"{object.content_object.resource.url}"
 
 
     # nested field: nest artist serializer into this
